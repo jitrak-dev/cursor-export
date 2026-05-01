@@ -4,18 +4,20 @@
   "description": "Monorepo: core + VS Code extension (cursor-logs)",
   "scripts": {
     "prepare": "husky",
-    "lint": "eslint \"packages/*/src/**/*.ts\"",
+    "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
+    "husky": "^9.1.7",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1",
-    "husky": "^9.1.7"
+    "typescript-eslint": "^8.18.1"
   },
   "packageManager": "pnpm@9.15.4"
 }
