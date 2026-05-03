@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 
-import { registerCursorLogs } from './cursorLogsController';
+import { registerCursorSync } from './cursorSyncController';
 
 export function activate(context: vscode.ExtensionContext): void {
-  registerCursorLogs(context);
+  registerCursorSync(context);
 }
 
 export function deactivate(): void {}

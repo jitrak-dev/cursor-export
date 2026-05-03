@@ -51,7 +51,7 @@ importers:
 
   packages/vscode-ext:
     dependencies:
-      '@cursor-logs/core':
+      '@cursor-sync/core':
         specifier: workspace:*
         version: link:../core
       chokidar:

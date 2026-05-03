@@ -1,8 +1,8 @@
 {
-  "name": "@cursor-logs/core",
+  "name": "@cursor-sync/core",
   "private": true,
   "version": "0.0.1",
-  "description": "Path resolution, SQLite read, schema detection, and chat export for cursor-logs",
+  "description": "Path resolution, SQLite read, schema detection, and chat export for cursor-sync",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

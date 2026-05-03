@@ -1,6 +1,6 @@
 ---
-name: cursor-logs implementation
-overview: 'Bootstrap a monorepo (core + VS Code extension) under **cursor-logs** that watches state.vscdb, reads chats read-only, and auto-exports to .cursor/chats/*.md plus index.json (no git, no import-back). Tooling first: ESLint curly rule all + Prettier + eslint-config-prettier so if/else and loop bodies use braces and format cleanly.'
+name: cursor-sync implementation
+overview: 'Bootstrap a monorepo (core + VS Code extension) under **cursor-sync** that watches state.vscdb, reads chats read-only, and auto-exports to .cursor/chats/*.md plus index.json (no git, no import-back). Tooling first: ESLint curly rule all + Prettier + eslint-config-prettier so if/else and loop bodies use braces and format cleanly.'
 todos:
   - id: lint-prettier-setup
     content: 'After minimal root package.json + workspace manifest: ESLint flat config (curly all, TS recommended), eslint-config-prettier last, Prettier, .prettierrc/.prettierignore, lint/format scripts; verify unbraced if fails ESLint'
@@ -27,18 +27,18 @@ todos:
     content: Add weekly workflow + known-schema.json and diff/alert (or self-hosted dump later)
     status: completed
   - id: docs-publish
-    content: README, privacy opt-in, vsce package/publish as **cursor-logs** (name, `publisher`, extension id)
+    content: README, privacy opt-in, vsce package/publish as **cursor-sync** (name, `publisher`, extension id)
     status: completed
 isProject: false
 ---
 
-# Plan: Implement cursor-logs (from Notion)
+# Plan: Implement cursor-sync (from Notion)
 
-**Product name (locked):** **cursor-logs** — use for repo-facing names, `package.json` / `displayName`, VS Code `publisher` + extension identifier, and Marketplace listing (no alternate public name such as “cursor-sync”).
+**Product name (canonical):** **cursor-sync** — use for repo-facing names, `package.json` / `displayName`, VS Code `publisher` + extension identifier, and Open VSX listing.
 
-**Source spec:** [cursor-logs on Notion](https://www.notion.so/34ada311a58e813788fefa34cf85dd89) — vision, file layout, tech stack, roadmap, and explicit non-goals (no git, no V2 import).
+**Source spec:** [cursor-sync on Notion](https://www.notion.so/eji4h/cursor-sync-34ada311a58e813788fefa34cf85dd89) — vision, file layout, tech stack, roadmap, and explicit non-goals (no git, no V2 import).
 
-**Current repo state:** Only [`.gitignore`](../../.gitignore) and [LICENSE](../../LICENSE) exist; the extension and packages must be created from scratch.
+**Current repo state:** The monorepo (`packages/core`, `packages/vscode-ext`) and extension behavior described below are implemented; this document remains the original implementation checklist and architecture record (updated for the **cursor-sync** rebrand).
 
 ## ESLint and Prettier: if/else and loops (do this first)
 
@@ -127,7 +127,7 @@ flowchart LR
 5. **SchemaDetector:** Run `PRAGMA table_list` / query `sqlite_master` + sample `SELECT` to detect which adapter applies; log clearly when unknown (no silent corruption).
 6. **ChatExporter:** For each **stable conversation id**, build the filename from `YYYY-MM-DD` + **slugified title** + disambiguating id; emit **required YAML front matter** (`title`, `model`, `updated` as ISO-8601) then the message body; write atomically (temp file + rename). On title change, replace the old file for that id (see filename rules above). Rebuild or merge `index.json` in one place to avoid half-written state.
 7. **Extension host:** `activate`: resolve paths, attach chokidar to both files (or parent dirs if needed), **debounce** (e.g. 500–1000ms) to avoid export storms, call `ChatExporter` on the workspace `workspaceFolder[0].uri` (or multi-root: export per folder if storage mapping is clear; **V1 can document single-root first** to reduce risk).
-8. **Settings:** e.g. `cursorLogs.enabled`, `cursorLogs.outputDirectory` (default `.cursor/chats`), optional `cursorLogs.debounceMs` — align with “opt-in + privacy” in Notion (first-run or README warning for sensitive content).
+8. **Settings:** V1 contributes VS Code settings under **`cursorSync.*`** (`cursorSync.enabled`, `cursorSync.outputDirectory` default `.cursor/chats`, optional `cursorSync.debounceMs`). Align copy with “opt-in + privacy” in Notion (first-run or README warning for sensitive content). Users migrating from the older **cursor-logs** extension must reconfigure (previous keys were `cursorLogs.*`).
 9. **Tests:** `packages/core` unit tests with **checked-in tiny SQLite fixture** (minimal tables matching one adapter) for exporter + detector; assert every export includes the **three required front-matter keys**; no need to embed real chat text in repo.
 10. **CI — schema monitoring (pragmatic V1):**
 
@@ -135,7 +135,7 @@ flowchart LR
 - **Minimum viable path (recommended to ship first):** commit `known-schema.json` + script `pnpm run schema:dump` (local) that prints diff; weekly workflow runs **only** the diff against the committed file and **opens a workflow failure** or a **“please run schema:dump and PR”** issue — or auto-PR if the job can run the dump in a supported environment.
 - Plan should pick one: start with **committed golden + diff job**; upgrade to auto-PR when a reliable dump source exists (Notion’s ideal flow).
 
-11. **Packaging & publish:** `vsce package` (staging VSIX unchanged); **publish หลัก: Open VSX** via `ovsx` + token (namespace `jitrak-dev`; GitHub secret `OPEN_VSX_TOKEN` per [Notion spec](https://www.notion.so/34ada311a58e813788fefa34cf85dd89)) — VS Marketplace/Azure PAT blocked per product doc. README: install from Open VSX / privacy note / “add `.cursor/chats` to git or `.gitignore` as you prefer.”
+11. **Packaging & publish:** `vsce package` (staging VSIX unchanged); **publish หลัก: Open VSX** via `ovsx` + token (namespace `jitrak-dev`; GitHub secret `OPEN_VSX_TOKEN` per [Notion spec](https://www.notion.so/eji4h/cursor-sync-34ada311a58e813788fefa34cf85dd89)) — VS Marketplace/Azure PAT blocked per product doc. README: install from Open VSX / privacy note / “add `.cursor/chats` to git or `.gitignore` as you prefer.”
 12. **Post-launch (Notion “Next steps”):** forum posts to threads linked in the Notion “References” section.
 
 ## Key risks (from Notion) and how the plan addresses them
@@ -149,7 +149,7 @@ flowchart LR
 - Repo root ESLint + Prettier wired; **`curly: "all"`** enforced on `if`/`else` and loops; Prettier check passes on package sources.
 - Importable `packages/core` with tests.
 - Every exported `.md` includes **required** YAML front matter: `title`, `model`, `updated`.
-- Loadable **cursor-logs** VS Code extension that creates/updates `.cursor/chats/` without touching git.
+- Loadable **cursor-sync** VS Code extension that creates/updates `.cursor/chats/` without touching git.
 - Documented path resolution for Win/macOS/Linux.
 - Schema baseline + monitoring story (at least golden + scheduled check).
 - No import-back, no `git` API usage.

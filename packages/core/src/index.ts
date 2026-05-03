@@ -76,5 +76,5 @@ export {
 
 /** Smoke check that the workspace package resolves. */
 export function ping(): string {
-  return 'cursor-logs-core';
+  return 'cursor-sync-core';
 }

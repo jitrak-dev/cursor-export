@@ -40,7 +40,7 @@ function parseYamlFrontMatter(md: string): Record<string, string> {
 describe('exportWorkspaceChats (Cursor 3 fixture)', () => {
   it('writes markdown with required title, model, and updated front matter', () => {
     const tmp = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'cursor-logs-core-test-'),
+      path.join(os.tmpdir(), 'cursor-sync-core-test-'),
     );
     const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
       includeModel: true,
@@ -78,7 +78,7 @@ describe('exportWorkspaceChats (Cursor 3 fixture)', () => {
 
   it('emits model unknown when composer data has no modelConfig', () => {
     const tmp = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'cursor-logs-core-test-'),
+      path.join(os.tmpdir(), 'cursor-sync-core-test-'),
     );
     const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
       includeModel: false,

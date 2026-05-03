@@ -1,13 +1,17 @@
-# cursor-logs
+# cursor-sync
 
-Monorepo for **cursor-logs**: export Cursor (and compatible VS Code) composer chats from read-only `state.vscdb` storage into Markdown under your workspace (default `.cursor/chats/`), plus a machine-readable `index.json`.
+Monorepo for **cursor-sync**: export Cursor (and compatible VS Code) composer chats from read-only `state.vscdb` storage into Markdown under your workspace (default `.cursor/chats/`), plus a machine-readable `index.json`.
 
-Repository: [github.com/jitrak-dev/cursor-logs](https://github.com/jitrak-dev/cursor-logs)
+Repository: [github.com/jitrak-dev/cursor-sync](https://github.com/jitrak-dev/cursor-sync)
+
+## Migrating from cursor-logs
+
+The extension was previously published as **cursor-logs**. This repo and the Open VSX listing use **cursor-sync**; contributed settings are **`cursorSync.*`** (not `cursorLogs.*`). After switching, re-apply your enabled flag and paths.
 
 ## Privacy and opt-in
 
 - Chat exports can include **sensitive** content (prompts, code, secrets). Treat exported files like source code: review before sharing, and use `.gitignore` if you do not want them in git.
-- The VS Code extension is **off by default** (`cursorLogs.enabled`: `false`). Enable it only when you accept writing exports under the opened workspace.
+- The VS Code extension is **off by default** (`cursorSync.enabled`: `false`). Enable it only when you accept writing exports under the opened workspace.
 - This tool **does not** upload chats anywhere; it only reads local SQLite and writes files you configure.
 
 ## Layout
@@ -46,7 +50,7 @@ From the repo root:
 pnpm extension:package
 ```
 
-Writes `packages/vscode-ext/cursor-logs-<version>.vsix` (not committed; `*.vsix` is gitignored). Install in Cursor or VS Code: **Extensions → … → Install from VSIX…**.
+Writes `packages/vscode-ext/cursor-sync-<version>.vsix` (not committed; `*.vsix` is gitignored). Install in Cursor or VS Code: **Extensions → … → Install from VSIX…**.
 
 ### Publish to Open VSX (`jitrak-dev` namespace)
 
@@ -68,7 +72,7 @@ pnpm extension:publish
 
 You can use `OVSX_PAT` instead of `OPEN_VSX_TOKEN` if you prefer the ovsx default name. For GitHub Actions, add a repository secret **`OPEN_VSX_TOKEN`**; the workflow [`.github/workflows/extension-publish.yml`](./.github/workflows/extension-publish.yml) maps it to `OVSX_PAT` when publishing on tag `v*` (or manual `workflow_dispatch`).
 
-**Listing:** after publish, the extension appears under `https://open-vsx.org/extension/<publisher>/<name>` (e.g. `jitrak-dev` / `cursor-logs`).
+**Listing:** after publish, the extension appears under `https://open-vsx.org/extension/<publisher>/<name>` (e.g. `jitrak-dev` / `cursor-sync`).
 
 If the registry reports the version already exists, bump `version` in `packages/vscode-ext/package.json`, then run `pnpm extension:publish` again.
 
@@ -77,7 +81,7 @@ If the registry reports the version already exists, bump `version` in `packages/
 - **Markdown** files: required YAML front matter keys `title`, `model`, `updated` (ISO-8601), then the thread body.
 - **`index.json`**: maps stable composer id → relative path, title, updated.
 
-Default output directory: `<workspace>/.cursor/chats/`. Override with setting `cursorLogs.outputDirectory`.
+Default output directory: `<workspace>/.cursor/chats/`. Override with setting `cursorSync.outputDirectory`.
 
 ## License
 

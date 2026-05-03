@@ -37,7 +37,7 @@ function main() {
     fs.readFileSync(path.join(extRoot, 'package.json'), 'utf8'),
   );
   const version = String(pkg.version ?? '0.0.0');
-  const vsixName = `cursor-logs-${version}.vsix`;
+  const vsixName = `cursor-sync-${version}.vsix`;
   const vsixPath = path.join(extRoot, vsixName);
 
   if (!fs.existsSync(vsixPath)) {

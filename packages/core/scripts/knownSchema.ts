@@ -38,7 +38,7 @@ function resolveActualDbPath(): string {
   if (fromEnv && fromEnv.length > 0) {
     return path.resolve(fromEnv);
   }
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cursor-logs-schema-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cursor-sync-schema-'));
   const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'));
   return fixture.globalStateVscdbPath;
 }

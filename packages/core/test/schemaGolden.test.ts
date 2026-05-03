@@ -13,7 +13,7 @@ const GOLDEN = path.join(__dirname, '../schema/known-schema.json');
 
 describe('known-schema.json (sqlite_master golden)', () => {
   it('matches the minimal Cursor 3 fixture global DB', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cursor-logs-golden-'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cursor-sync-golden-'));
     const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'));
     const actual = querySqliteMasterRows(fixture.globalStateVscdbPath);
     const golden = JSON.parse(fs.readFileSync(GOLDEN, 'utf8')) as {

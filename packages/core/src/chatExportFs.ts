@@ -37,7 +37,7 @@ export function writeTextFileAtomic(targetPath: string, text: string): void {
   const base = path.basename(targetPath);
   const tmp = path.join(
     dir,
-    `.cursor-logs-${crypto.randomBytes(8).toString('hex')}-${base}.tmp`,
+    `.cursor-sync-${crypto.randomBytes(8).toString('hex')}-${base}.tmp`,
   );
   fs.writeFileSync(tmp, text, 'utf8');
   safeUnlink(targetPath);

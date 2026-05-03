@@ -7,18 +7,18 @@ import {
   exportWorkspaceChats,
   findWorkspaceStateVscdbForFolder,
   resolveGlobalStateVscdbPath,
-} from '@cursor-logs/core';
+} from '@cursor-sync/core';
 import chokidar from 'chokidar';
 import * as vscode from 'vscode';
 
-const CONFIG_SECTION = 'cursorLogs';
+const CONFIG_SECTION = 'cursorSync';
 
 function clampDebounceMs(raw: unknown): number {
   const n = typeof raw === 'number' && Number.isFinite(raw) ? raw : 800;
   return Math.min(15_000, Math.max(200, Math.round(n)));
 }
 
-function readCursorLogsConfig(): {
+function readCursorSyncConfig(): {
   enabled: boolean;
   outputDirectory: string;
   debounceMs: number;
@@ -52,14 +52,14 @@ function resolveEditorVariant(): 'cursor' | 'vscode' {
  * Registers settings-driven file watching (single-root v1), debounced export,
  * commands, and a small status item when watching is enabled.
  */
-export function registerCursorLogs(context: vscode.ExtensionContext): void {
-  const output = vscode.window.createOutputChannel('cursor-logs');
+export function registerCursorSync(context: vscode.ExtensionContext): void {
+  const output = vscode.window.createOutputChannel('cursor-sync');
 
   const statusItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     9_000,
   );
-  statusItem.name = 'cursor-logs';
+  statusItem.name = 'cursor-sync';
 
   let disposeWatch: (() => void) | undefined;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -81,13 +81,13 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
     const folder = vscode.workspace.workspaceFolders?.[0];
     if (!folder) {
       output.appendLine(
-        `[${reason}] skipped: no workspace folder (cursor-logs v1 uses the first folder only).`,
+        `[${reason}] skipped: no workspace folder (cursor-sync v1 uses the first folder only).`,
       );
       return;
     }
 
     const variant = resolveEditorVariant();
-    const cfg = readCursorLogsConfig();
+    const cfg = readCursorSyncConfig();
     const outDir = resolveOutputDirectory(
       folder.uri.fsPath,
       cfg.outputDirectory,
@@ -109,12 +109,12 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
           output.appendLine(`  skip ${s.composerId}: ${s.reason}`);
         }
       }
-      statusItem.tooltip = `cursor-logs: last export (${reason}) at ${new Date().toLocaleTimeString()}\n${result.exported.length} file(s)`;
+      statusItem.tooltip = `cursor-sync: last export (${reason}) at ${new Date().toLocaleTimeString()}\n${result.exported.length} file(s)`;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       output.appendLine(`[${reason}] export failed: ${msg}`);
       void vscode.window.showErrorMessage(
-        `cursor-logs: export failed — ${msg}`,
+        `cursor-sync: export failed — ${msg}`,
       );
     }
   };
@@ -123,7 +123,7 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
     if (debounceTimer !== undefined) {
       clearTimeout(debounceTimer);
     }
-    const ms = readCursorLogsConfig().debounceMs;
+    const ms = readCursorSyncConfig().debounceMs;
     debounceTimer = setTimeout(() => {
       debounceTimer = undefined;
       runExport('watch');
@@ -132,7 +132,7 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
 
   const syncWatcher = (): void => {
     disposeWatchState();
-    const cfg = readCursorLogsConfig();
+    const cfg = readCursorSyncConfig();
     if (!cfg.enabled) {
       statusItem.hide();
       return;
@@ -140,10 +140,10 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
 
     const folder = vscode.workspace.workspaceFolders?.[0];
     if (!folder) {
-      statusItem.text = '$(warning) cursor-logs';
+      statusItem.text = '$(warning) cursor-sync';
       statusItem.tooltip =
-        'cursor-logs: open a folder workspace to resolve chat storage paths.';
-      statusItem.command = 'cursorLogs.showOutput';
+        'cursor-sync: open a folder workspace to resolve chat storage paths.';
+      statusItem.command = 'cursorSync.showOutput';
       statusItem.show();
       return;
     }
@@ -186,9 +186,9 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
       void watcher.close();
     };
 
-    statusItem.text = '$(save-all) cursor-logs';
-    statusItem.tooltip = 'cursor-logs: watching storage; click to export now';
-    statusItem.command = 'cursorLogs.exportNow';
+    statusItem.text = '$(save-all) cursor-sync';
+    statusItem.tooltip = 'cursor-sync: watching storage; click to export now';
+    statusItem.command = 'cursorSync.exportNow';
     statusItem.show();
   };
 
@@ -203,10 +203,10 @@ export function registerCursorLogs(context: vscode.ExtensionContext): void {
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
       syncWatcher();
     }),
-    vscode.commands.registerCommand('cursorLogs.exportNow', () => {
+    vscode.commands.registerCommand('cursorSync.exportNow', () => {
       runExport('command');
     }),
-    vscode.commands.registerCommand('cursorLogs.showOutput', () => {
+    vscode.commands.registerCommand('cursorSync.showOutput', () => {
       output.show(true);
     }),
     new vscode.Disposable(() => {

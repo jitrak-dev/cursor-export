@@ -1,21 +1,21 @@
 {
-  "name": "cursor-logs-monorepo",
+  "name": "cursor-sync-monorepo",
   "private": true,
-  "description": "Monorepo: core + VS Code extension (cursor-logs)",
+  "description": "Monorepo: core + VS Code extension (cursor-sync)",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "prepare": "husky",
     "build": "tsc -b",
-    "test": "pnpm --filter @cursor-logs/core test",
+    "test": "pnpm --filter @cursor-sync/core test",
     "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "schema:dump": "tsx packages/core/scripts/knownSchema.ts dump",
     "schema:diff": "tsx packages/core/scripts/knownSchema.ts diff",
-    "extension:package": "pnpm --filter cursor-logs run vsix",
-    "extension:publish": "pnpm extension:package && pnpm --filter cursor-logs run publish:openvsx"
+    "extension:package": "pnpm --filter cursor-sync run vsix",
+    "extension:publish": "pnpm extension:package && pnpm --filter cursor-sync run publish:openvsx"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

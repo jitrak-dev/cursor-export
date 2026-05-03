@@ -62,7 +62,7 @@ function main() {
     main: pkg.main,
     contributes: pkg.contributes,
     dependencies: {
-      '@cursor-logs/core': 'file:./core.tgz',
+      '@cursor-sync/core': 'file:./core.tgz',
       chokidar: chokidarRange,
     },
     scripts: {
@@ -96,7 +96,7 @@ function main() {
     path.join(staging, '.vscodeignore'),
   );
 
-  const vsixName = `cursor-logs-${version}.vsix`;
+  const vsixName = `cursor-sync-${version}.vsix`;
   const vsixPath = path.join(extRoot, vsixName);
   const vsceBin = path.join(extRoot, 'node_modules', '.bin', 'vsce');
   if (!fs.existsSync(vsceBin)) {
