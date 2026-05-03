@@ -1,6 +1,15 @@
 import * as path from 'node:path';
 
 import {
+  parseComposerHeadersPayload,
+  parseComposerWorkspaceDataPayload,
+} from './cursorComposerTypes';
+import {
+  isJsonObject,
+  type JsonObject,
+  type JsonValue,
+} from './cursorStorageJson';
+import {
   getItemTableJson,
   hasCursorDiskKvTable,
   hasItemTable,
@@ -90,36 +99,20 @@ function inspectSurface(dbFilePath: string): StateDbSurfaceReport {
   return base;
 }
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
-
-function readGlobalHeaders(db: OpenedStateDb): unknown | undefined {
+function readGlobalHeaders(db: OpenedStateDb): JsonValue | undefined {
   return getItemTableJson(db, 'composer.composerHeaders');
 }
 
-function readWorkspaceComposerData(db: OpenedStateDb): unknown | undefined {
+function readWorkspaceComposerData(db: OpenedStateDb): JsonValue | undefined {
   return getItemTableJson(db, 'composer.composerData');
 }
 
-function globalHasComposerHeadersJson(data: unknown): boolean {
-  if (!isRecord(data)) {
-    return false;
-  }
-  if (!('allComposers' in data)) {
-    return false;
-  }
-  return Array.isArray(data.allComposers);
+function globalHasComposerHeadersJson(data: JsonValue | undefined): boolean {
+  return parseComposerHeadersPayload(data) !== undefined;
 }
 
-function workspaceHasAllComposersList(data: unknown): boolean {
-  if (!isRecord(data)) {
-    return false;
-  }
-  if (!('allComposers' in data)) {
-    return false;
-  }
-  return Array.isArray(data.allComposers);
+function workspaceHasAllComposersList(data: JsonValue | undefined): boolean {
+  return parseComposerWorkspaceDataPayload(data) !== undefined;
 }
 
 function pickVersion(
@@ -265,31 +258,32 @@ function pathsEqualCaseAware(
 }
 
 function composerRowBelongsToWorkspace(
-  row: Record<string, unknown>,
+  row: JsonObject,
   workspaceStorageId: string,
   workspaceFolderFsPath: string | undefined,
   platform: NodeJS.Platform,
 ): boolean {
-  const wid = row.workspaceIdentifier;
-  if (isRecord(wid)) {
-    const id = wid.id;
-    if (typeof id === 'string' && id === workspaceStorageId) {
-      return true;
-    }
-    const uri = wid.uri;
-    if (workspaceFolderFsPath && isRecord(uri)) {
-      const fsPath = uri.fsPath;
-      if (typeof fsPath === 'string') {
-        if (pathsEqualCaseAware(fsPath, workspaceFolderFsPath, platform)) {
-          return true;
-        }
+  const widVal = row['workspaceIdentifier'];
+  if (!isJsonObject(widVal)) {
+    return false;
+  }
+  const id = widVal['id'];
+  if (typeof id === 'string' && id === workspaceStorageId) {
+    return true;
+  }
+  const uriVal = widVal['uri'];
+  if (workspaceFolderFsPath && isJsonObject(uriVal)) {
+    const fsPath = uriVal['fsPath'];
+    if (typeof fsPath === 'string') {
+      if (pathsEqualCaseAware(fsPath, workspaceFolderFsPath, platform)) {
+        return true;
       }
     }
   }
   return false;
 }
 
-function coerceFiniteNumber(value: unknown): number | null {
+function coerceFiniteNumber(value: JsonValue | undefined): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
@@ -302,17 +296,17 @@ function coerceFiniteNumber(value: unknown): number | null {
   return null;
 }
 
-function mapComposerRow(row: unknown): ComposerSummary | undefined {
-  if (!isRecord(row)) {
+function mapComposerRow(row: JsonValue): ComposerSummary | undefined {
+  if (!isJsonObject(row)) {
     return undefined;
   }
-  const id = row.composerId;
-  const name = row.name;
+  const id = row['composerId'];
+  const name = row['name'];
   if (typeof id !== 'string' || typeof name !== 'string') {
     return undefined;
   }
-  const createdAt = coerceFiniteNumber(row.createdAt);
-  const lastUpdatedAt = coerceFiniteNumber(row.lastUpdatedAt);
+  const createdAt = coerceFiniteNumber(row['createdAt']);
+  const lastUpdatedAt = coerceFiniteNumber(row['lastUpdatedAt']);
   return {
     composerId: id,
     title: name,
@@ -327,17 +321,14 @@ function listFromCursor3Global(
   workspaceFolderFsPath: string | undefined,
   platform: NodeJS.Platform,
 ): ComposerSummary[] {
-  const data = readGlobalHeaders(globalDb);
-  if (!isRecord(data)) {
-    return [];
-  }
-  const all = data.allComposers;
-  if (!Array.isArray(all)) {
+  const raw = readGlobalHeaders(globalDb);
+  const payload = parseComposerHeadersPayload(raw);
+  if (!payload) {
     return [];
   }
   const out: ComposerSummary[] = [];
-  for (const row of all) {
-    if (!isRecord(row)) {
+  for (const row of payload.allComposers) {
+    if (!isJsonObject(row)) {
       continue;
     }
     if (
@@ -361,16 +352,13 @@ function listFromCursor3Global(
 function listFromCursor2Workspace(
   workspaceDb: OpenedStateDb,
 ): ComposerSummary[] {
-  const data = readWorkspaceComposerData(workspaceDb);
-  if (!isRecord(data)) {
-    return [];
-  }
-  const all = data.allComposers;
-  if (!Array.isArray(all)) {
+  const raw = readWorkspaceComposerData(workspaceDb);
+  const payload = parseComposerWorkspaceDataPayload(raw);
+  if (!payload) {
     return [];
   }
   const out: ComposerSummary[] = [];
-  for (const row of all) {
+  for (const row of payload.allComposers) {
     const mapped = mapComposerRow(row);
     if (mapped) {
       out.push(mapped);

@@ -1,5 +1,7 @@
 import Database from 'better-sqlite3';
 
+import { type JsonValue, parseJsonFromUtf8 } from './cursorStorageJson';
+
 /** Opened `better-sqlite3` connection (see `export =` typing on `@types/better-sqlite3`). */
 export type SqliteDatabase = InstanceType<typeof Database>;
 
@@ -64,7 +66,7 @@ export function hasCursorDiskKvTable(db: SqliteDatabase): boolean {
 export function getItemTableJson(
   db: SqliteDatabase,
   key: string,
-): unknown | undefined {
+): JsonValue | undefined {
   const row = db
     .prepare('SELECT value FROM ItemTable WHERE key = ?')
     .get(key) as { value: Buffer | Uint8Array } | undefined;
@@ -73,9 +75,5 @@ export function getItemTableJson(
   }
   const buf = Buffer.isBuffer(row.value) ? row.value : Buffer.from(row.value);
   const text = buf.toString('utf8');
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return undefined;
-  }
+  return parseJsonFromUtf8(text);
 }

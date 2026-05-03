@@ -1,4 +1,20 @@
 export {
+  type ComposerHeadersPayload,
+  type ComposerWorkspaceDataPayload,
+  type ComposerWorkspaceIdentifier,
+  type ComposerWorkspaceUri,
+  parseComposerHeadersPayload,
+  parseComposerWorkspaceDataPayload,
+} from './cursorComposerTypes';
+export {
+  isJsonObject,
+  type JsonArray,
+  type JsonObject,
+  type JsonPrimitive,
+  type JsonValue,
+  parseJsonFromUtf8,
+} from './cursorStorageJson';
+export {
   type ComposerSummary,
   type CursorSchemaVersion,
   type CursorStorageSchemaProfile,

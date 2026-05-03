@@ -3,6 +3,8 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { isJsonObject, parseJsonFromUtf8 } from './cursorStorageJson';
+
 /** Which editor install to resolve paths for (Cursor vs stock VS Code). */
 export type EditorVariant = 'cursor' | 'vscode';
 
@@ -133,6 +135,76 @@ function tryRealpath(
   return path.resolve(p);
 }
 
+type WorkspaceScanFs = NonNullable<FindWorkspaceStateOptions['fsImpl']>;
+
+function isExistingDirectory(fsImpl: WorkspaceScanFs, dir: string): boolean {
+  try {
+    return fsImpl.statSync(dir).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/** Returns `folder` URI string from `workspace.json`, or `undefined` if missing/invalid. */
+function tryReadWorkspaceJsonFolderUri(
+  fsImpl: WorkspaceScanFs,
+  workspaceDir: string,
+): string | undefined {
+  let raw: string;
+  try {
+    raw = fsImpl.readFileSync(
+      path.join(workspaceDir, 'workspace.json'),
+      'utf8',
+    );
+  } catch {
+    return undefined;
+  }
+  const ws = parseJsonFromUtf8(raw);
+  if (!isJsonObject(ws) || !('folder' in ws)) {
+    return undefined;
+  }
+  const folder = ws['folder'];
+  if (typeof folder !== 'string') {
+    return undefined;
+  }
+  return folder;
+}
+
+/**
+ * If `workspaceDir` maps to the same folder as `targetResolved`, return its
+ * `state.vscdb` path and mtime; otherwise `undefined`.
+ */
+function tryMatchingStateVscdbInDir(
+  fsImpl: WorkspaceScanFs,
+  workspaceDir: string,
+  targetResolved: string,
+  platform: NodeJS.Platform,
+): { dbPath: string; mtime: number } | undefined {
+  const folderUri = tryReadWorkspaceJsonFolderUri(fsImpl, workspaceDir);
+  if (!folderUri) {
+    return undefined;
+  }
+  const mapped = folderUriToFsPath(folderUri);
+  if (!mapped) {
+    return undefined;
+  }
+  const resolvedMapped = tryRealpath(fsImpl, mapped);
+  if (!pathsEqual(targetResolved, resolvedMapped, platform)) {
+    return undefined;
+  }
+  const dbPath = path.join(workspaceDir, 'state.vscdb');
+  let dbStat: fs.Stats;
+  try {
+    dbStat = fsImpl.statSync(dbPath);
+  } catch {
+    return undefined;
+  }
+  if (!dbStat.isFile()) {
+    return undefined;
+  }
+  return { dbPath, mtime: dbStat.mtimeMs };
+}
+
 /**
  * Scan `workspaceStorage` for a `workspace.json` whose `folder` URI matches
  * `workspaceFolderPath`, and return the newest matching `state.vscdb` by mtime.
@@ -159,65 +231,16 @@ export function findWorkspaceStateVscdbUnderStorageRoot(
 
   for (const name of names) {
     const dir = path.join(workspaceStorageRoot, name);
-    let st: fs.Stats;
-    try {
-      st = fsImpl.statSync(dir);
-    } catch {
+    if (!isExistingDirectory(fsImpl, dir)) {
       continue;
     }
-    if (!st.isDirectory()) {
+    const entry = tryMatchingStateVscdbInDir(fsImpl, dir, target, platform);
+    if (!entry) {
       continue;
     }
-
-    const wsFile = path.join(dir, 'workspace.json');
-    let raw: string;
-    try {
-      raw = fsImpl.readFileSync(wsFile, 'utf8');
-    } catch {
-      continue;
-    }
-
-    let ws: unknown;
-    try {
-      ws = JSON.parse(raw) as unknown;
-    } catch {
-      continue;
-    }
-
-    if (!ws || typeof ws !== 'object' || !('folder' in ws)) {
-      continue;
-    }
-
-    const folder = (ws as { folder?: unknown }).folder;
-    if (typeof folder !== 'string') {
-      continue;
-    }
-
-    const mapped = folderUriToFsPath(folder);
-    if (!mapped) {
-      continue;
-    }
-
-    const resolvedMapped = tryRealpath(fsImpl, mapped);
-    if (!pathsEqual(target, resolvedMapped, platform)) {
-      continue;
-    }
-
-    const dbPath = path.join(dir, 'state.vscdb');
-    let dbStat: fs.Stats;
-    try {
-      dbStat = fsImpl.statSync(dbPath);
-    } catch {
-      continue;
-    }
-    if (!dbStat.isFile()) {
-      continue;
-    }
-
-    const mtime = dbStat.mtimeMs;
-    if (mtime >= bestMtime) {
-      bestMtime = mtime;
-      bestPath = dbPath;
+    if (entry.mtime >= bestMtime) {
+      bestMtime = entry.mtime;
+      bestPath = entry.dbPath;
     }
   }
 
