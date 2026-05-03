@@ -1,3 +1,15 @@
+## [1.0.3](https://github.com/jitrak-dev/cursor-export/compare/v1.0.2...v1.0.3) (2026-05-03)
+
+
+### docs
+
+* trim Open VSX versioning notes from READMEs ([](https://github.com/jitrak-dev/cursor-export/commit/60316b8a85a75de694460d443e5e0e3d7b23f68c))
+
+
+### fix
+
+* **ext:** resolve workspace state.vscdb for vscode-remote URIs ([](https://github.com/jitrak-dev/cursor-export/commit/e5d549ce73c22d6ec0e2273410771af8ee13a47a))
+
 ## [1.0.2](https://github.com/jitrak-dev/cursor-export/compare/v1.0.1...v1.0.2) (2026-05-03)
 
 
