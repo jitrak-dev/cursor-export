@@ -2,7 +2,7 @@
 
 Monorepo for **Cursor Export** (`cursor-export`): export Cursor (and compatible VS Code) composer chats from read-only `state.vscdb` storage into Markdown under your workspace (default `.cursor/chats/`), plus a machine-readable `index.json`.
 
-Repository: [github.com/jitrak-dev/cursor-sync](https://github.com/jitrak-dev/cursor-sync)
+Repository: [github.com/jitrak-dev/cursor-export](https://github.com/jitrak-dev/cursor-export)
 
 ## Versioning and Open VSX
 
@@ -14,10 +14,6 @@ Repository: [github.com/jitrak-dev/cursor-sync](https://github.com/jitrak-dev/cu
 - Chat exports can include **sensitive** content (prompts, code, secrets). Treat exported files like source code: review before sharing, and use `.gitignore` if you do not want them in git.
 - The VS Code extension is **off by default** (`cursorExport.enabled`: `false`). Enable it only when you accept writing exports under the opened workspace.
 - This tool **does not** upload chats anywhere; it only reads local SQLite and writes files you configure.
-
-## Migrating from Cursor Sync (extension id `cursor-sync`)
-
-If you used the older extension, uninstall it and install **Cursor Export**. Move settings from `cursorSync.*` to `cursorExport.*` (for example `cursorSync.enabled` → `cursorExport.enabled`). Command IDs and keybindings that referenced `cursorSync.*` must use `cursorExport.*` instead.
 
 ## Layout
 

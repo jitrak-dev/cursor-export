@@ -2,19 +2,19 @@
   "name": "cursor-export",
   "displayName": "Cursor Export",
   "icon": "icon.png",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "jitrak-dev",
   "description": "Export Cursor chats to .cursor/chats (workspace)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jitrak-dev/cursor-sync.git",
+    "url": "https://github.com/jitrak-dev/cursor-export.git",
     "directory": "packages/vscode-ext"
   },
   "bugs": {
-    "url": "https://github.com/jitrak-dev/cursor-sync/issues"
+    "url": "https://github.com/jitrak-dev/cursor-export/issues"
   },
-  "homepage": "https://github.com/jitrak-dev/cursor-sync#readme",
+  "homepage": "https://github.com/jitrak-dev/cursor-export#readme",
   "keywords": [
     "cursor",
     "chat",

@@ -23,13 +23,9 @@ Releases are tagged **`v*`** (semantic-release). If you cleared all versions on 
 | `cursorExport.outputDirectory` | _(empty)_ | Relative to workspace or absolute path            |
 | `cursorExport.debounceMs`      | `800`     | Debounce after file changes before export         |
 
-## Migrating from `cursor-sync`
-
-If you had the **Cursor Sync** extension (`cursor-sync`), uninstall it and install this one. Replace `cursorSync.*` settings with `cursorExport.*` and update any keybindings that used `cursorSync.exportNow` / `cursorSync.showOutput`.
-
 ## Repository
 
-Source and full monorepo docs: [github.com/jitrak-dev/cursor-sync](https://github.com/jitrak-dev/cursor-sync).
+Source and full monorepo docs: [github.com/jitrak-dev/cursor-export](https://github.com/jitrak-dev/cursor-export).
 
 ## Donation channels
 
