@@ -11,7 +11,15 @@
         "pkgRoot": "packages/vscode-ext"
       }
     ],
-    "@semantic-release/github",
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false,
+        "releasedLabels": false,
+        "failComment": false,
+        "failTitle": false
+      }
+    ],
     [
       "@semantic-release/git",
       {
