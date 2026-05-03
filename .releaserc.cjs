@@ -10,17 +10,18 @@ module.exports = {
       {
         writerOpts: {
           transform(commit) {
-            if (commit.body) {
-              commit.body = commit.body
-                .split('\n')
-                .filter((line) => !/^Co-authored-by:/i.test(line.trim()))
-                .join('\n')
-                .trim();
-              if (!commit.body) {
-                delete commit.body;
-              }
+            if (!commit.body) {
+              return commit;
             }
-            return commit;
+            const cleaned = commit.body
+              .split('\n')
+              .filter((line) => !/^Co-authored-by:/i.test(line.trim()))
+              .join('\n')
+              .trim();
+            if (cleaned === commit.body) {
+              return commit;
+            }
+            return { ...commit, body: cleaned || undefined };
           },
         },
       },
