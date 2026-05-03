@@ -1,7 +1,7 @@
 {
   "name": "cursor-sync",
   "displayName": "cursor-sync",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "jitrak-dev",
   "description": "Export Cursor chats to .cursor/chats (workspace)",
   "license": "MIT",

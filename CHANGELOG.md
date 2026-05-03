@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/jitrak-dev/cursor-sync/compare/v1.0.0...v1.0.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* **ci:** remove [skip ci] from semantic-release commit message ([48b4310](https://github.com/jitrak-dev/cursor-sync/commit/48b431070cbd0beda2549f78f40210a091986b1b))
+
 # [1.0.0](https://github.com/jitrak-dev/cursor-sync/compare/v0.0.4...v1.0.0) (2026-05-03)
 
 
