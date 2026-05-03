@@ -19,7 +19,7 @@ Repository: [github.com/jitrak-dev/cursor-logs](https://github.com/jitrak-dev/cu
 
 ## Development
 
-Requirements: Node 20+, [pnpm](https://pnpm.io/) 9.
+Requirements: Node **24+**, [pnpm](https://pnpm.io/) **11** (see `packageManager` in root `package.json`).
 
 **Environment:** develop and run packaging on **Linux** or **macOS**. On **Windows**, use **WSL** (treat like Linux: same paths and shell). The VSIX / publish scripts are not aimed at native Windows shells.
 

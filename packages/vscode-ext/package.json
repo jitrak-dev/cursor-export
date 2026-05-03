@@ -1,7 +1,7 @@
 {
   "name": "cursor-logs",
   "displayName": "cursor-logs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "jitrak-dev",
   "description": "Export Cursor chats to .cursor/chats (workspace)",
   "license": "MIT",
@@ -80,7 +80,7 @@
     "chokidar": "^3.6.0"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
+    "@types/node": "^24.0.0",
     "@types/vscode": "^1.95.0",
     "@vscode/vsce": "2.32.0"
   }
