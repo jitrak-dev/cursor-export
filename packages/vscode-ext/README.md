@@ -19,11 +19,11 @@ If you previously used the **cursor-logs** extension, uninstall it and install *
 
 ## Settings
 
-| Id                            | Default   | Description                                       |
-| ----------------------------- | --------- | ------------------------------------------------- |
-| `cursorSync.enabled`          | `false`   | Watch global + workspace `state.vscdb` and export |
-| `cursorSync.outputDirectory`  | _(empty)_ | Relative to workspace or absolute path            |
-| `cursorSync.debounceMs`       | `800`     | Debounce after file changes before export         |
+| Id                           | Default   | Description                                       |
+| ---------------------------- | --------- | ------------------------------------------------- |
+| `cursorSync.enabled`         | `false`   | Watch global + workspace `state.vscdb` and export |
+| `cursorSync.outputDirectory` | _(empty)_ | Relative to workspace or absolute path            |
+| `cursorSync.debounceMs`      | `800`     | Debounce after file changes before export         |
 
 ## Repository
 
