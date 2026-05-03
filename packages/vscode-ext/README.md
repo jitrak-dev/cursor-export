@@ -6,10 +6,6 @@ Export Cursor / VS Code **composer** chats from local `state.vscdb` storage into
 
 Exports can contain **sensitive** data. The extension is **disabled by default**; turn on **Cursor Sync: Enabled** only if you want files written under your workspace. Nothing is uploaded by this extension.
 
-## Migrating from cursor-logs
-
-If you previously used the **cursor-logs** extension, uninstall it and install **cursor-sync**. Settings and commands use new ids: **`cursorSync.*`** (not `cursorLogs.*`); re-enable **Enabled** and any custom output path after upgrading.
-
 ## Usage
 
 1. Open a **folder** workspace (single-root v1).

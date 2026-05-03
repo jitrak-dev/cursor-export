@@ -4,10 +4,6 @@ Monorepo for **cursor-sync**: export Cursor (and compatible VS Code) composer ch
 
 Repository: [github.com/jitrak-dev/cursor-sync](https://github.com/jitrak-dev/cursor-sync)
 
-## Migrating from cursor-logs
-
-The extension was previously published as **cursor-logs**. This repo and the Open VSX listing use **cursor-sync**; contributed settings are **`cursorSync.*`** (not `cursorLogs.*`). After switching, re-apply your enabled flag and paths.
-
 ## Privacy and opt-in
 
 - Chat exports can include **sensitive** content (prompts, code, secrets). Treat exported files like source code: review before sharing, and use `.gitignore` if you do not want them in git.
