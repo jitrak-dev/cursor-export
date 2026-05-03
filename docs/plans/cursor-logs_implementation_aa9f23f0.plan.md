@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: path-resolver
     content: Implement cross-platform resolution for workspace state.vscdb and globalStorage/state.vscdb
-    status: pending
+    status: completed
   - id: schema-adapter
     content: Study cursaves + real DB; add SchemaDetector + versioned read adapter for Cursor 3.x
     status: pending

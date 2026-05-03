@@ -14,5 +14,8 @@
   "scripts": {
     "build": "tsc -b",
     "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0"
   }
 }
