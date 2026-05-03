@@ -2,5 +2,17 @@
   "name": "@cursor-logs/core",
   "private": true,
   "version": "0.0.0",
-  "description": "Placeholder package until bootstrap-monorepo completes TypeScript wiring."
+  "description": "Path resolution, SQLite read, schema detection, and chat export for cursor-logs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  }
 }

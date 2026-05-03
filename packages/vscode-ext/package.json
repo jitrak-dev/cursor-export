@@ -1,0 +1,32 @@
+{
+  "name": "cursor-logs-extension",
+  "displayName": "cursor-logs",
+  "private": true,
+  "version": "0.0.1",
+  "publisher": "local",
+  "description": "Export Cursor chats to .cursor/chats (workspace)",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": []
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "watch": "tsc -b -w"
+  },
+  "dependencies": {
+    "@cursor-logs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.95.0"
+  }
+}

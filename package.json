@@ -4,6 +4,7 @@
   "description": "Monorepo: core + VS Code extension (cursor-logs)",
   "scripts": {
     "prepare": "husky",
+    "build": "tsc -b",
     "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

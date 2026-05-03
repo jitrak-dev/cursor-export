@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: bootstrap-monorepo
     content: Complete packages/core + packages/vscode-ext, TypeScript project references, vscode-ext → core dependency; ensure ESLint globs include packages/*/src
-    status: pending
+    status: completed
   - id: path-resolver
     content: Implement cross-platform resolution for workspace state.vscdb and globalStorage/state.vscdb
     status: pending

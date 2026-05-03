@@ -1,2 +1,4 @@
-/** Placeholder until bootstrap-monorepo; keeps core src non-empty for ESLint. */
-export const __cursorLogsCorePlaceholder = true;
+/** Public entry for @cursor-logs/core (path resolver, schema, exporter will live here). */
+export function ping(): string {
+  return 'cursor-logs-core';
+}
