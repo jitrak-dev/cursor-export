@@ -4,11 +4,6 @@ Monorepo for **Cursor Export** (`cursor-export`): export Cursor (and compatible 
 
 Repository: [github.com/jitrak-dev/cursor-export](https://github.com/jitrak-dev/cursor-export)
 
-## Versioning and Open VSX
-
-- Published extension versions follow **semantic-release**; release tags use the usual **`v*`** form (for example `v1.0.0`).
-- If you intentionally cleared all versions of this extension on [open-vsx.org](https://open-vsx.org/) (profile → **Settings** → **Extensions** → trash icon → delete every version), you can publish **1.0.0** again from a clean listing. Do the same check on the **Visual Studio Marketplace** if you publish there too—its rules may differ.
-
 ## Privacy and opt-in
 
 - Chat exports can include **sensitive** content (prompts, code, secrets). Treat exported files like source code: review before sharing, and use `.gitignore` if you do not want them in git.
@@ -86,7 +81,6 @@ You can use `OVSX_PAT` instead of `OPEN_VSX_TOKEN` if you prefer the ovsx defaul
 - **Tag workflows vs. `[skip ci]`:** Release commits must **not** include `[skip ci]` in the message. GitHub skips `on: push` workflows for commits that contain it, which includes **tag** pushes pointing at that commit—so Publish Open VSX would never run. The next `Release` workflow run after a release commit is a no-op for semantic-release (no version bump), which is acceptable.
 - **First-time baseline:** semantic-release infers the next version from existing **`v*`** git tags. This repo already has `v0.0.1` … `v0.0.4` aligned with the extension version; keep tags consistent with published Open VSX versions when introducing automation.
 - **Manual publish:** You can still run `pnpm extension:publish` locally when needed. If the registry says the version exists, merge conventional commits to `main` and let semantic-release bump, or use `workflow_dispatch` on extension-publish after a new tag exists.
-- **v1.0.0:** First stable semver major for the published extension (Open VSX).
 
 If your default branch is not `main`, update `branches` in `.releaserc.cjs` and the branch filter in `release.yml` to match.
 

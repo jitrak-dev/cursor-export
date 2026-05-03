@@ -6,8 +6,6 @@ Export Cursor / VS Code **composer** chats from local `state.vscdb` storage into
 
 Exports can contain **sensitive** data. The extension is **disabled by default**; turn on **Cursor Export: Enabled** only if you want files written under your workspace. Nothing is uploaded by this extension.
 
-Releases are tagged **`v*`** (semantic-release). If you cleared all versions on Open VSX and republish, you can start from **1.0.0** as documented in the monorepo README.
-
 ## Usage
 
 1. Open a **folder** workspace (single-root v1).
