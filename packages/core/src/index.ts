@@ -1,4 +1,30 @@
 export {
+  type ChatExporterOptions,
+  type ChatExportResult,
+  type ExportedChatFile,
+  exportWorkspaceChats,
+  type SkippedChatExport,
+} from './chatExporter';
+export {
+  buildUniqueMarkdownStem,
+  pickExportEpochMs,
+  slugifyForFilename,
+  toUtcDatePrefix,
+} from './chatExportFilename';
+export {
+  type ChatIndexEntryV1,
+  type ChatIndexFileV1,
+  mergeAndWriteChatIndex,
+  writeTextFileAtomic,
+} from './chatExportFs';
+export {
+  buildComposerMarkdownBody,
+  buildYamlFrontMatter,
+  iso8601FromEpochMs,
+  loadComposerDataJson,
+  modelFromComposerData,
+} from './chatExportMarkdown';
+export {
   type ComposerHeadersPayload,
   type ComposerWorkspaceDataPayload,
   type ComposerWorkspaceIdentifier,
@@ -27,6 +53,8 @@ export {
   type StateDbSurfaceReport,
 } from './cursorStorageSchema';
 export {
+  DEFAULT_STATE_VSCDB_BUSY_TIMEOUT_MS,
+  getCursorDiskKvJson,
   getItemTableJson,
   hasCursorDiskKvTable,
   hasItemTable,

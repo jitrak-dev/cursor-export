@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: chat-exporter
     content: Implement ChatExporter (required YAML front matter title/model/updated; filename YYYY-MM-DD + slugified title + id; body; index.json; atomic writes; retry on SQLITE_BUSY)
-    status: pending
+    status: completed
   - id: extension-watch
     content: Wire chokidar, debounce, settings, optional status/command; single-workspace v1 if needed
     status: pending
