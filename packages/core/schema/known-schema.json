@@ -1,0 +1,18 @@
+{
+  "description": "sqlite_master snapshot for Cursor-style state.vscdb (see packages/core/test/cursor3Fixture). Regenerate: pnpm schema:dump",
+  "dbRole": "global",
+  "rows": [
+    {
+      "type": "table",
+      "name": "ItemTable",
+      "tbl_name": "ItemTable",
+      "sql": "CREATE TABLE ItemTable (key TEXT UNIQUE NOT NULL, value BLOB)"
+    },
+    {
+      "type": "table",
+      "name": "cursorDiskKV",
+      "tbl_name": "cursorDiskKV",
+      "sql": "CREATE TABLE cursorDiskKV (key TEXT UNIQUE NOT NULL, value BLOB)"
+    }
+  ]
+}

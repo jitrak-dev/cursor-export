@@ -1,0 +1,27 @@
+{
+  "name": "@cursor-export/core",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Path resolution, SQLite read, schema detection, and chat export for cursor-export",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.0.0",
+    "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
+  }
+}

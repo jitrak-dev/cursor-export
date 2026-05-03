@@ -1,0 +1,89 @@
+{
+  "name": "cursor-export",
+  "displayName": "Cursor Export",
+  "icon": "icon.png",
+  "version": "1.0.0",
+  "publisher": "jitrak-dev",
+  "description": "Export Cursor chats to .cursor/chats (workspace)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jitrak-dev/cursor-sync.git",
+    "directory": "packages/vscode-ext"
+  },
+  "bugs": {
+    "url": "https://github.com/jitrak-dev/cursor-sync/issues"
+  },
+  "homepage": "https://github.com/jitrak-dev/cursor-sync#readme",
+  "keywords": [
+    "cursor",
+    "chat",
+    "export",
+    "markdown",
+    "composer",
+    "cursor-export"
+  ],
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cursorExport.exportNow",
+        "title": "Cursor Export: Export chats now",
+        "category": "Cursor Export"
+      },
+      {
+        "command": "cursorExport.showOutput",
+        "title": "Cursor Export: Show output",
+        "category": "Cursor Export"
+      }
+    ],
+    "configuration": {
+      "title": "Cursor Export",
+      "properties": {
+        "cursorExport.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Watch Cursor/VS Code chat storage (`state.vscdb`) and export chats into this workspace. **Opt-in:** exported Markdown may contain sensitive content; only enable if you accept writing files under your workspace."
+        },
+        "cursorExport.outputDirectory": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Folder for exported `.md` and `index.json`. Leave empty for `<workspace>/.cursor/chats`. May be absolute or workspace-relative."
+        },
+        "cursorExport.debounceMs": {
+          "type": "number",
+          "default": 800,
+          "minimum": 200,
+          "maximum": 15000,
+          "markdownDescription": "Wait this long after a storage file change before running an export (coalesces rapid DB writes)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "watch": "tsc -b -w",
+    "vscode:prepublish": "pnpm run build",
+    "vsix": "node ./scripts/package-vsix.mjs",
+    "publish:openvsx": "node ./scripts/publish-openvsx.mjs"
+  },
+  "dependencies": {
+    "@cursor-export/core": "workspace:*",
+    "chokidar": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.0.0",
+    "ovsx": "0.10.1"
+  }
+}

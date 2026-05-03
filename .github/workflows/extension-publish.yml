@@ -1,0 +1,35 @@
+name: Publish Open VSX
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Package and publish VSIX
+        env:
+          OVSX_PAT: ${{ secrets.OPEN_VSX_TOKEN }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::error::Repository secret OPEN_VSX_TOKEN is empty or not passed to this job. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          pnpm extension:publish
