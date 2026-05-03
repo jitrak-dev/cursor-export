@@ -1,11 +1,9 @@
-import { ping } from '@cursor-logs/core';
 import * as vscode from 'vscode';
 
+import { registerCursorLogs } from './cursorLogsController';
+
 export function activate(context: vscode.ExtensionContext): void {
-  void context;
-  console.log(`cursor-logs: activated (${ping()})`);
+  registerCursorLogs(context);
 }
 
-export function deactivate(): void {
-  // Reserved for disposables / watchers in a later step.
-}
+export function deactivate(): void {}

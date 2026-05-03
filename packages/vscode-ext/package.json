@@ -16,14 +16,48 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": []
+    "commands": [
+      {
+        "command": "cursorLogs.exportNow",
+        "title": "Cursor Logs: Export chats now",
+        "category": "Cursor Logs"
+      },
+      {
+        "command": "cursorLogs.showOutput",
+        "title": "Cursor Logs: Show output",
+        "category": "Cursor Logs"
+      }
+    ],
+    "configuration": {
+      "title": "Cursor Logs",
+      "properties": {
+        "cursorLogs.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Watch Cursor/VS Code chat storage (`state.vscdb`) and export chats into this workspace. **Opt-in:** exported Markdown may contain sensitive content; only enable if you accept writing files under your workspace."
+        },
+        "cursorLogs.outputDirectory": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Folder for exported `.md` and `index.json`. Leave empty for `<workspace>/.cursor/chats`. May be absolute or workspace-relative."
+        },
+        "cursorLogs.debounceMs": {
+          "type": "number",
+          "default": 800,
+          "minimum": 200,
+          "maximum": 15000,
+          "markdownDescription": "Wait this long after a storage file change before running an export (coalesces rapid DB writes)."
+        }
+      }
+    }
   },
   "scripts": {
     "build": "tsc -b",
     "watch": "tsc -b -w"
   },
   "dependencies": {
-    "@cursor-logs/core": "workspace:*"
+    "@cursor-logs/core": "workspace:*",
+    "chokidar": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

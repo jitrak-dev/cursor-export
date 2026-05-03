@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: extension-watch
     content: Wire chokidar, debounce, settings, optional status/command; single-workspace v1 if needed
-    status: pending
+    status: completed
   - id: tests-core
     content: Add SQLite fixture-based unit tests in packages/core (assert required title/model/updated front matter on exports)
     status: pending
