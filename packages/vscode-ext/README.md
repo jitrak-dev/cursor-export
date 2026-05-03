@@ -24,3 +24,7 @@ Exports can contain **sensitive** data. The extension is **disabled by default**
 ## Repository
 
 Source and full monorepo docs: [github.com/jitrak-dev/cursor-sync](https://github.com/jitrak-dev/cursor-sync).
+
+## Donation channels
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U6U81YWLS6)

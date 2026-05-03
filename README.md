@@ -92,6 +92,10 @@ If your default branch is not `main`, update `branches` in `.releaserc.cjs` and 
 
 Default output directory: `<workspace>/.cursor/chats/`. Override with setting `cursorSync.outputDirectory`.
 
+## Donation channels
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U6U81YWLS6)
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
