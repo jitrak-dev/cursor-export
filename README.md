@@ -35,6 +35,10 @@ pnpm lint
 pnpm format:check
 ```
 
+### Commits
+
+This repo uses [Conventional Commits](https://www.conventionalcommits.org/). The Husky [`commit-msg`](./.husky/commit-msg) hook runs [commitlint](https://commitlint.js.org/) (`commitlint.config.js`) so messages stay parseable for automated releases.
+
 ### Schema golden file
 
 ```bash
@@ -74,7 +78,14 @@ You can use `OVSX_PAT` instead of `OPEN_VSX_TOKEN` if you prefer the ovsx defaul
 
 **Listing:** after publish, the extension appears under `https://open-vsx.org/extension/<publisher>/<name>` (e.g. `jitrak-dev` / `cursor-sync`).
 
-If the registry reports the version already exists, bump `version` in `packages/vscode-ext/package.json`, then run `pnpm extension:publish` again.
+## Releases
+
+- **Version and changelog:** [semantic-release](https://github.com/semantic-release/semantic-release) runs on pushes to **`main`** via [`.github/workflows/release.yml`](./.github/workflows/release.yml). It updates [`packages/vscode-ext/package.json`](./packages/vscode-ext/package.json), appends to root `CHANGELOG.md`, creates a GitHub Release, and pushes a release commit plus a **`v*`** tag. Config lives in [`.releaserc.json`](./.releaserc.json); local dry runs: `pnpm release` (needs a repo with tags and appropriate `GITHUB_TOKEN`).
+- **Open VSX after release:** The tag push must trigger [extension-publish](.github/workflows/extension-publish.yml). GitHub’s default `GITHUB_TOKEN` does **not** start new workflows when it creates a tag, so this workflow uses a **personal access token** repository secret **`SEMANTIC_RELEASE_GITHUB_TOKEN`** (classic PAT with `contents` write, or fine-grained PAT scoped to this repo with Contents read/write and Metadata read). Add the same token to checkout and `GITHUB_TOKEN` for the release step as in `release.yml`.
+- **First-time baseline:** semantic-release infers the next version from existing **`v*`** git tags. This repo already has `v0.0.1` … `v0.0.4` aligned with the extension version; keep tags consistent with published Open VSX versions when introducing automation.
+- **Manual publish:** You can still run `pnpm extension:publish` locally when needed. If the registry says the version exists, merge conventional commits to `main` and let semantic-release bump, or use `workflow_dispatch` on extension-publish after a new tag exists.
+
+If your default branch is not `main`, update `branches` in `.releaserc.json` and the branch filter in `release.yml` to match.
 
 ## Output format
 

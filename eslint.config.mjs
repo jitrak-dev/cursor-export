@@ -10,6 +10,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/out/**',
       'packages/vscode-ext/scripts/**',
+      'commitlint.config.cjs',
     ],
   },
   eslint.configs.recommended,
