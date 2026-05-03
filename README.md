@@ -50,7 +50,7 @@ Writes `packages/vscode-ext/cursor-logs-<version>.vsix` (not committed; `*.vsix`
 
 ### Publish to Open VSX (`jitrak-dev` namespace)
 
-Primary distribution is the [public Open VSX Registry](https://open-vsx.org/) (VSCodium and many VS Code–compatible editors use it). The VSIX is built by [`package-vsix.mjs`](./packages/vscode-ext/scripts/package-vsix.mjs) invoking the **`vsce`** binary from the devDependency **`@vscode/vsce@2.32.0`** under `packages/vscode-ext/node_modules/.bin` (2.x avoids vsce 3.x secret-scan issues with this staging layout). Publishing uses the [`ovsx`](https://github.com/eclipse/openvsx) CLI via **`pnpm dlx ovsx@0.10.1`** (not declared in `package.json`; only runs when you publish).
+Primary distribution is the [public Open VSX Registry](https://open-vsx.org/) (VSCodium and many VS Code–compatible editors use it). The VSIX is built by [`package-vsix.mjs`](./packages/vscode-ext/scripts/package-vsix.mjs) invoking the **`vsce`** binary from the devDependency **`@vscode/vsce@2.32.0`** under `packages/vscode-ext/node_modules/.bin` (2.x avoids vsce 3.x secret-scan issues with this staging layout). Publishing uses the [`ovsx`](https://github.com/eclipse/openvsx) CLI via **`pnpm exec ovsx`** from the devDependency **`ovsx@0.10.1`** (same version CI uses after `pnpm install`).
 
 1. Create an **Open VSX** personal access token ([user settings → tokens](https://open-vsx.org/user-settings/tokens)). The namespace must match `publisher` in `packages/vscode-ext/package.json` (e.g. `jitrak-dev`); create the namespace first if needed ([publishing guide](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions)).
 2. From repo root:

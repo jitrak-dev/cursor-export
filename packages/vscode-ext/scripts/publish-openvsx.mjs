@@ -1,6 +1,6 @@
 /**
  * Publish the built VSIX to the public Open VSX Registry (open-vsx.org).
- * Uses `pnpm dlx ovsx@0.10.1` so ovsx is not a package dependency (vsce stays only for VSIX packaging).
+ * Uses `pnpm exec ovsx` from this package's devDependency (reliable in CI; avoids `pnpm dlx` quirks on runners).
  * Token: OPEN_VSX_TOKEN (repo / GitHub Actions) or OVSX_PAT (ovsx default).
  * From repo root: OPEN_VSX_TOKEN=<token> pnpm extension:publish
  */
@@ -47,7 +47,7 @@ function main() {
     process.exit(1);
   }
 
-  execSync(`pnpm dlx ovsx@0.10.1 publish "${vsixPath}"`, {
+  execSync(`pnpm exec ovsx publish "${vsixPath}"`, {
     cwd: extRoot,
     stdio: 'inherit',
     shell: true,
