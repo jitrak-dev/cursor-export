@@ -1,0 +1,7 @@
+src/**
+**/*.map
+tsconfig.json
+tsconfig.tsbuildinfo
+.vscode/**
+deploy/**
+.vsix-staging/**

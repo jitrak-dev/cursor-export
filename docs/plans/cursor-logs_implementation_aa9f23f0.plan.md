@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: docs-publish
     content: README, privacy opt-in, vsce package/publish as **cursor-logs** (name, `publisher`, extension id)
-    status: pending
+    status: completed
 isProject: false
 ---
 

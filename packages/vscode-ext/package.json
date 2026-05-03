@@ -1,12 +1,29 @@
 {
-  "name": "cursor-logs-extension",
+  "name": "cursor-logs",
   "displayName": "cursor-logs",
-  "private": true,
   "version": "0.0.1",
-  "publisher": "local",
+  "publisher": "jitrak-dev",
   "description": "Export Cursor chats to .cursor/chats (workspace)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jitrak-dev/cursor-logs.git",
+    "directory": "packages/vscode-ext"
+  },
+  "bugs": {
+    "url": "https://github.com/jitrak-dev/cursor-logs/issues"
+  },
+  "homepage": "https://github.com/jitrak-dev/cursor-logs#readme",
+  "keywords": [
+    "cursor",
+    "chat",
+    "export",
+    "markdown",
+    "composer",
+    "cursor-logs"
+  ],
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.95.0"
   },
   "categories": [
     "Other"
@@ -53,7 +70,10 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "watch": "tsc -b -w"
+    "watch": "tsc -b -w",
+    "vscode:prepublish": "pnpm run build",
+    "vsix": "node ./scripts/package-vsix.mjs",
+    "publish:marketplace": "node ./scripts/publish-marketplace.mjs"
   },
   "dependencies": {
     "@cursor-logs/core": "workspace:*",

@@ -1,5 +1,5 @@
 {
-  "name": "cursor-logs",
+  "name": "cursor-logs-monorepo",
   "private": true,
   "description": "Monorepo: core + VS Code extension (cursor-logs)",
   "scripts": {
@@ -10,7 +10,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "schema:dump": "tsx packages/core/scripts/knownSchema.ts dump",
-    "schema:diff": "tsx packages/core/scripts/knownSchema.ts diff"
+    "schema:diff": "tsx packages/core/scripts/knownSchema.ts diff",
+    "extension:package": "pnpm --filter cursor-logs run vsix",
+    "extension:publish": "pnpm extension:package && pnpm --filter cursor-logs run publish:marketplace"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
