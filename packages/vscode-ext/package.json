@@ -73,7 +73,7 @@
     "watch": "tsc -b -w",
     "vscode:prepublish": "pnpm run build",
     "vsix": "node ./scripts/package-vsix.mjs",
-    "publish:marketplace": "node ./scripts/publish-marketplace.mjs"
+    "publish:openvsx": "node ./scripts/publish-openvsx.mjs"
   },
   "dependencies": {
     "@cursor-logs/core": "workspace:*",
@@ -81,6 +81,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "@types/vscode": "^1.95.0"
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "2.32.0"
   }
 }

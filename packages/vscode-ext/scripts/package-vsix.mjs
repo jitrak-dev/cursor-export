@@ -1,6 +1,8 @@
 /**
  * Build a redistributable .vsix without running `npm list` on the pnpm workspace.
- * Stages a folder, `npm install` production deps from packed core + chokidar, then vsce.
+ * Stages a folder, `npm install` production deps from packed core + chokidar, then
+ * `vsce package` using the `@vscode/vsce` binary from `packages/vscode-ext/node_modules`.
+ * Intended for Linux / macOS / WSL (POSIX).
  */
 import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -96,7 +98,13 @@ function main() {
 
   const vsixName = `cursor-logs-${version}.vsix`;
   const vsixPath = path.join(extRoot, vsixName);
-  execSync(`npx --yes @vscode/vsce package -o "${vsixPath}"`, {
+  const vsceBin = path.join(extRoot, 'node_modules', '.bin', 'vsce');
+  if (!fs.existsSync(vsceBin)) {
+    throw new Error(
+      `vsce not found at ${vsceBin}. Run pnpm install from the repo root.`,
+    );
+  }
+  execSync(`"${vsceBin}" package -o "${vsixPath}"`, {
     cwd: staging,
     stdio: 'inherit',
     shell: true,

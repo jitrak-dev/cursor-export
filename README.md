@@ -21,6 +21,8 @@ Repository: [github.com/jitrak-dev/cursor-logs](https://github.com/jitrak-dev/cu
 
 Requirements: Node 20+, [pnpm](https://pnpm.io/) 9.
 
+**Environment:** develop and run packaging on **Linux** or **macOS**. On **Windows**, use **WSL** (treat like Linux: same paths and shell). The VSIX / publish scripts are not aimed at native Windows shells.
+
 ```bash
 pnpm install
 pnpm build
@@ -46,28 +48,29 @@ pnpm extension:package
 
 Writes `packages/vscode-ext/cursor-logs-<version>.vsix` (not committed; `*.vsix` is gitignored). Install in Cursor or VS Code: **Extensions → … → Install from VSIX…**.
 
-### Publish to Marketplace (`jitrak-dev` publisher)
+### Publish to Open VSX (`jitrak-dev` namespace)
 
-1. Create an Azure DevOps **Personal Access Token** with scope **Marketplace → Manage** ([docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token)).
-2. Ensure `publisher` in `packages/vscode-ext/package.json` matches your Marketplace publisher **ID** (e.g. `jitrak-dev`).
-3. From repo root:
+Primary distribution is the [public Open VSX Registry](https://open-vsx.org/) (VSCodium and many VS Code–compatible editors use it). The VSIX is built by [`package-vsix.mjs`](./packages/vscode-ext/scripts/package-vsix.mjs) invoking the **`vsce`** binary from the devDependency **`@vscode/vsce@2.32.0`** under `packages/vscode-ext/node_modules/.bin` (2.x avoids vsce 3.x secret-scan issues with this staging layout). Publishing uses the [`ovsx`](https://github.com/eclipse/openvsx) CLI via **`pnpm dlx ovsx@0.10.1`** (not declared in `package.json`; only runs when you publish).
+
+1. Create an **Open VSX** personal access token ([user settings → tokens](https://open-vsx.org/user-settings/tokens)). The namespace must match `publisher` in `packages/vscode-ext/package.json` (e.g. `jitrak-dev`); create the namespace first if needed ([publishing guide](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions)).
+2. From repo root:
 
 ```bash
 pnpm extension:publish
 ```
 
-This builds the VSIX then uploads it. Set the token in the environment (do **not** commit it):
+This runs `pnpm extension:package` then uploads the VSIX. Set the token in the environment (do **not** commit it):
 
 ```bash
-export VSCE_PAT="<your-pat-here>"
+export OPEN_VSX_TOKEN="<your-token-here>"
 pnpm extension:publish
 ```
 
-Or one line: `VSCE_PAT="<token>" pnpm extension:publish`
+You can use `OVSX_PAT` instead of `OPEN_VSX_TOKEN` if you prefer the ovsx default name. For GitHub Actions, add a repository secret **`OPEN_VSX_TOKEN`**; the workflow [`.github/workflows/extension-publish.yml`](./.github/workflows/extension-publish.yml) maps it to `OVSX_PAT` when publishing on tag `v*` (or manual `workflow_dispatch`).
 
-**Marketplace web UI:** after the publisher exists, open the publisher’s **Extensions** tab to see uploaded versions; profile **Details** (name, domain, logo) is separate from uploading the extension.
+**Listing:** after publish, the extension appears under `https://open-vsx.org/extension/<publisher>/<name>` (e.g. `jitrak-dev` / `cursor-logs`).
 
-If `vsce` reports the version already exists, bump `version` in `packages/vscode-ext/package.json`, rebuild, and publish again.
+If the registry reports the version already exists, bump `version` in `packages/vscode-ext/package.json`, then run `pnpm extension:publish` again.
 
 ## Output format
 

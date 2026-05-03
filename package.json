@@ -12,7 +12,7 @@
     "schema:dump": "tsx packages/core/scripts/knownSchema.ts dump",
     "schema:diff": "tsx packages/core/scripts/knownSchema.ts diff",
     "extension:package": "pnpm --filter cursor-logs run vsix",
-    "extension:publish": "pnpm extension:package && pnpm --filter cursor-logs run publish:marketplace"
+    "extension:publish": "pnpm extension:package && pnpm --filter cursor-logs run publish:openvsx"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

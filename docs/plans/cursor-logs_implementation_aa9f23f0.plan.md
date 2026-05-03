@@ -135,7 +135,7 @@ flowchart LR
 - **Minimum viable path (recommended to ship first):** commit `known-schema.json` + script `pnpm run schema:dump` (local) that prints diff; weekly workflow runs **only** the diff against the committed file and **opens a workflow failure** or a **“please run schema:dump and PR”** issue — or auto-PR if the job can run the dump in a supported environment.
 - Plan should pick one: start with **committed golden + diff job**; upgrade to auto-PR when a reliable dump source exists (Notion’s ideal flow).
 
-11. **Packaging & publish:** `vsce package` / `vsce publish`, README with install, privacy note, and “add `.cursor/chats` to git or `.gitignore` as you prefer.”
+11. **Packaging & publish:** `vsce package` (staging VSIX unchanged); **publish หลัก: Open VSX** via `ovsx` + token (namespace `jitrak-dev`; GitHub secret `OPEN_VSX_TOKEN` per [Notion spec](https://www.notion.so/34ada311a58e813788fefa34cf85dd89)) — VS Marketplace/Azure PAT blocked per product doc. README: install from Open VSX / privacy note / “add `.cursor/chats` to git or `.gitignore` as you prefer.”
 12. **Post-launch (Notion “Next steps”):** forum posts to threads linked in the Notion “References” section.
 
 ## Key risks (from Notion) and how the plan addresses them
