@@ -1,3 +1,16 @@
+# 1.0.0 (2026-05-03)
+
+
+### chore
+
+* 🤖 move cursor-sync implementation plan document ([](https://github.com/jitrak-dev/cursor-export/commit/4d5580f7790c333133f9a9eb0b7cbb5c521dffac))
+* initial import — Cursor Export monorepo ([](https://github.com/jitrak-dev/cursor-export/commit/e7d4f06bc62b5fce52c30da126d2c0ee016bcc07))
+
+
+### fix
+
+* **vscode-ext:** migrate tsconfig from deprecated node resolution ([](https://github.com/jitrak-dev/cursor-export/commit/15acfb09a07dd6c27d23444617f4505caaf89244))
+
 # [1.0.0](https://github.com/jitrak-dev/cursor-export) (2026-05-04)
 
 ### release
