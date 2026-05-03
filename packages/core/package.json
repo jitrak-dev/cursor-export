@@ -16,6 +16,10 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.10.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
   }
 }

@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: schema-adapter
     content: Study cursaves + real DB; add SchemaDetector + versioned read adapter for Cursor 3.x
-    status: pending
+    status: completed
   - id: chat-exporter
     content: Implement ChatExporter (required YAML front matter title/model/updated; filename YYYY-MM-DD + slugified title + id; body; index.json; atomic writes; retry on SQLITE_BUSY)
     status: pending

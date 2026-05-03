@@ -239,6 +239,16 @@ export function findWorkspaceStateVscdbForFolder(
 }
 
 /**
+ * Opaque workspace id: basename of the directory that contains `state.vscdb`
+ * (matches `workspaceIdentifier.id` in Cursor 3 `composer.composerHeaders`).
+ */
+export function workspaceStorageIdFromStateVscdbPath(
+  stateVscdbPath: string,
+): string {
+  return path.basename(path.dirname(path.resolve(stateVscdbPath)));
+}
+
+/**
  * Map `vscode.env.appName` (or similar) to an editor variant.
  * Returns `undefined` when the host is not recognized.
  */

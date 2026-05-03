@@ -9,7 +9,7 @@
     "target": "ES2022",
     "rootDir": "src",
     "outDir": "dist",
-    "types": ["node"]
+    "types": ["node", "better-sqlite3"]
   },
   "include": ["src/**/*.ts"]
 }
