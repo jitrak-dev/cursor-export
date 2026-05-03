@@ -13,11 +13,13 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^22.10.0"
+    "@types/node": "^22.10.0",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0"

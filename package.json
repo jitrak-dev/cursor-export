@@ -5,7 +5,8 @@
   "scripts": {
     "prepare": "husky",
     "build": "tsc -b",
-    "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\"",
+    "test": "pnpm --filter @cursor-logs/core test",
+    "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

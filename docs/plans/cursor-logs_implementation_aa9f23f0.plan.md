@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: tests-core
     content: Add SQLite fixture-based unit tests in packages/core (assert required title/model/updated front matter on exports)
-    status: pending
+    status: completed
   - id: ci-schema
     content: Add weekly workflow + known-schema.json and diff/alert (or self-hosted dump later)
     status: pending

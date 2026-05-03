@@ -12,7 +12,11 @@ export default tseslint.config(
   eslintConfigPrettier,
   // eslint-config-prettier sets `curly` off (special case); re-enable after it.
   {
-    files: ['eslint.config.mjs', 'packages/*/src/**/*.ts'],
+    files: [
+      'eslint.config.mjs',
+      'packages/*/src/**/*.ts',
+      'packages/*/test/**/*.ts',
+    ],
     plugins: {
       'simple-import-sort': simpleImportSort,
     },
