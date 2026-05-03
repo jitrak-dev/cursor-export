@@ -71,6 +71,7 @@ export {
   resolveEditorUserDirectory,
   resolveGlobalStateVscdbPath,
   resolveWorkspaceStorageRoot,
+  workspaceFolderUriToFsPath,
   workspaceStorageIdFromStateVscdbPath,
 } from './storagePaths';
 

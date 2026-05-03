@@ -22,12 +22,17 @@ function readCursorExportConfig(): {
   enabled: boolean;
   outputDirectory: string;
   debounceMs: number;
+  workspaceStateDbPath: string | undefined;
 } {
   const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
+  const rawDb = cfg.get<string>('workspaceStateDbPath', '').trim();
+  const workspaceStateDbPath =
+    rawDb.length > 0 && path.isAbsolute(rawDb) ? rawDb : undefined;
   return {
     enabled: cfg.get<boolean>('enabled', false),
     outputDirectory: cfg.get<string>('outputDirectory', '').trim(),
     debounceMs: clampDebounceMs(cfg.get<number>('debounceMs', 800)),
+    workspaceStateDbPath,
   };
 }
 
@@ -98,6 +103,9 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
         workspaceFolderPath: folder.uri.fsPath,
         editorVariant: variant,
         outputDirectory: outDir,
+        ...(cfg.workspaceStateDbPath
+          ? { workspaceStateDbPath: cfg.workspaceStateDbPath }
+          : {}),
         sqliteBusyTimeoutMs: DEFAULT_STATE_VSCDB_BUSY_TIMEOUT_MS,
         onDiagnostic: appendDiagnostic,
       });
@@ -150,10 +158,9 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
 
     const variant = resolveEditorVariant();
     const globalPath = resolveGlobalStateVscdbPath(variant);
-    const workspaceDb = findWorkspaceStateVscdbForFolder(
-      folder.uri.fsPath,
-      variant,
-    );
+    const workspaceDb =
+      cfg.workspaceStateDbPath ??
+      findWorkspaceStateVscdbForFolder(folder.uri.fsPath, variant);
     const paths = [globalPath, workspaceDb].filter(
       (p): p is string => typeof p === 'string' && p.length > 0,
     );

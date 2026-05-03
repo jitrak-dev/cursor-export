@@ -103,15 +103,37 @@ export function resolveGlobalStateVscdbPath(
   );
 }
 
-function folderUriToFsPath(folderUri: string): string | undefined {
-  if (!folderUri.startsWith('file://')) {
-    return undefined;
+/**
+ * Map a `workspace.json` `folder` URI to a filesystem path when the URI
+ * refers to the same path space as `WorkspaceFolder.uri.fsPath` on the
+ * extension host (`file://` or `vscode-remote://` with an absolute path).
+ */
+export function workspaceFolderUriToFsPath(
+  folderUri: string,
+): string | undefined {
+  const trimmed = folderUri.trim();
+  if (trimmed.startsWith('file://')) {
+    try {
+      return fileURLToPath(trimmed);
+    } catch {
+      return undefined;
+    }
   }
-  try {
-    return fileURLToPath(folderUri);
-  } catch {
-    return undefined;
+  const remote = 'vscode-remote://';
+  if (trimmed.length > remote.length && trimmed.startsWith(remote)) {
+    const rest = trimmed.slice(remote.length);
+    const slash = rest.indexOf('/');
+    if (slash === -1 || slash === rest.length - 1) {
+      return undefined;
+    }
+    const rawPath = rest.slice(slash);
+    try {
+      return decodeURIComponent(rawPath);
+    } catch {
+      return undefined;
+    }
   }
+  return undefined;
 }
 
 function pathsEqual(a: string, b: string, platform: NodeJS.Platform): boolean {
@@ -184,10 +206,11 @@ function tryMatchingStateVscdbInDir(
   if (!folderUri) {
     return undefined;
   }
-  const mapped = folderUriToFsPath(folderUri);
-  if (!mapped) {
+  const mappedRaw = workspaceFolderUriToFsPath(folderUri);
+  if (!mappedRaw) {
     return undefined;
   }
+  const mapped = path.normalize(mappedRaw);
   const resolvedMapped = tryRealpath(fsImpl, mapped);
   if (!pathsEqual(targetResolved, resolvedMapped, platform)) {
     return undefined;
@@ -208,7 +231,7 @@ function tryMatchingStateVscdbInDir(
 /**
  * Scan `workspaceStorage` for a `workspace.json` whose `folder` URI matches
  * `workspaceFolderPath`, and return the newest matching `state.vscdb` by mtime.
- * Only `file://` workspace folders are supported (local single-folder workspaces).
+ * Supports `file://` and `vscode-remote://` (same-host remote workspaces, e.g. WSL).
  */
 export function findWorkspaceStateVscdbUnderStorageRoot(
   workspaceFolderPath: string,

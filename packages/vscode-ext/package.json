@@ -65,6 +65,11 @@
           "minimum": 200,
           "maximum": 15000,
           "markdownDescription": "Wait this long after a storage file change before running an export (coalesces rapid DB writes)."
+        },
+        "cursorExport.workspaceStateDbPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional **absolute** path to this workspace's `state.vscdb` under `User/workspaceStorage/<id>/`. When set, skips auto-discovery from `workspace.json`. Use if export cannot resolve the DB (e.g. unusual remote layouts)."
         }
       }
     }
