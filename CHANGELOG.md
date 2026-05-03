@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/jitrak-dev/cursor-export/compare/v1.0.1...v1.0.2) (2026-05-03)
+
+
+### fix
+
+* **vscode-ext:** replace marketplace icon with branded asset ([](https://github.com/jitrak-dev/cursor-export/commit/9aa69d672c696a89a5e2519e0d5cd3194feb714c))
+
 ## [1.0.1](https://github.com/jitrak-dev/cursor-export/compare/v1.0.0...v1.0.1) (2026-05-03)
 
 
