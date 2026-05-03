@@ -8,7 +8,9 @@
     "test": "pnpm --filter @cursor-logs/core test",
     "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\"",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "schema:dump": "tsx packages/core/scripts/knownSchema.ts dump",
+    "schema:diff": "tsx packages/core/scripts/knownSchema.ts diff"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

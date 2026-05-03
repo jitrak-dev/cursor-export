@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: ci-schema
     content: Add weekly workflow + known-schema.json and diff/alert (or self-hosted dump later)
-    status: pending
+    status: completed
   - id: docs-publish
     content: README, privacy opt-in, vsce package/publish as **cursor-logs** (name, `publisher`, extension id)
     status: pending

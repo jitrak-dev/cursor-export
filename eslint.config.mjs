@@ -16,6 +16,7 @@ export default tseslint.config(
       'eslint.config.mjs',
       'packages/*/src/**/*.ts',
       'packages/*/test/**/*.ts',
+      'packages/core/scripts/**/*.ts',
     ],
     plugins: {
       'simple-import-sort': simpleImportSort,
