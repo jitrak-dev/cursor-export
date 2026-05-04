@@ -1,11 +1,16 @@
 /**
  * Build a redistributable .vsix without running `npm list` on the pnpm workspace.
  * Stages a folder, `npm install` production deps from packed core + chokidar, then
- * `vsce package --target <platform>` so `better-sqlite3` native binaries match the OS.
+ * rebuilds `better-sqlite3` for the **Electron** version used by the VS Code/Cursor
+ * extension host (not plain Node), then `vsce package --target <platform>`.
  *
  * Usage:
  *   node ./scripts/package-vsix.mjs
  *   node ./scripts/package-vsix.mjs --target darwin-arm64
+ *
+ * Env:
+ *   ELECTRON_EXTENSION_HOST_VERSION — Electron semver for `npm rebuild better-sqlite3`
+ *     (default tracks microsoft/vscode devDependency `electron`, bump when load errors mention NODE_MODULE_VERSION).
  *
  * Without `--target`, infers from `process.platform` / `process.arch` (see inferVsceTarget).
  * Output: `packages/vscode-ext/cursor-export-<version>-<target>.vsix`
@@ -20,6 +25,14 @@ const extRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(extRoot, '../..');
 const coreRoot = path.resolve(extRoot, '../core');
 const staging = path.join(extRoot, '.vsix-staging');
+
+/**
+ * Electron version bundled with recent VS Code / Cursor extension host
+ * (NODE_MODULE_VERSION / native ABI). Align with upstream:
+ * https://github.com/microsoft/vscode/blob/main/package.json → devDependencies.electron
+ * Override for local/CI: ELECTRON_EXTENSION_HOST_VERSION=39.x.y
+ */
+const DEFAULT_ELECTRON_EXTENSION_HOST = '39.8.8';
 
 /** @type {readonly string[]} */
 const VALID_VSCE_TARGETS = [
@@ -42,10 +55,13 @@ function rmrf(dir) {
 function printUsage() {
   console.log(`Usage: node ./scripts/package-vsix.mjs [--target <platform>]
 
-Builds a platform-specific VSIX (required for correct better-sqlite3 native bindings).
+Builds a platform-specific VSIX (OS/arch + Electron ABI for better-sqlite3).
 
 --target   One of: ${VALID_VSCE_TARGETS.join(', ')}
            If omitted, inferred from this machine (process.platform / process.arch).
+
+Env:
+  ELECTRON_EXTENSION_HOST_VERSION   Electron semver for native rebuild (default ${DEFAULT_ELECTRON_EXTENSION_HOST})
 
 Examples:
   node ./scripts/package-vsix.mjs --target linux-x64
@@ -97,6 +113,37 @@ function assertValidTarget(target) {
       `Invalid --target "${target}". Must be one of: ${VALID_VSCE_TARGETS.join(', ')}`,
     );
   }
+}
+
+/**
+ * Extension host runs on Electron, not the same Node ABI as `npm install` under CI Node.
+ * Rebuild the native addon so `better_sqlite3.node` matches `process.versions.modules` in Cursor.
+ */
+function rebuildBetterSqliteForElectron(stagingDir) {
+  const electronVer =
+    process.env.ELECTRON_EXTENSION_HOST_VERSION?.trim() ||
+    DEFAULT_ELECTRON_EXTENSION_HOST;
+  const mod = path.join(stagingDir, 'node_modules', 'better-sqlite3');
+  if (!fs.existsSync(mod)) {
+    console.warn(
+      'better-sqlite3 not hoisted to staging/node_modules; skip Electron rebuild',
+    );
+    return;
+  }
+  console.log(
+    `Rebuilding better-sqlite3 for Electron ${electronVer} (extension host ABI)...`,
+  );
+  execSync('npm rebuild better-sqlite3', {
+    cwd: stagingDir,
+    stdio: 'inherit',
+    shell: true,
+    env: {
+      ...process.env,
+      npm_config_runtime: 'electron',
+      npm_config_target: electronVer,
+      npm_config_disturl: 'https://electronjs.org/headers',
+    },
+  });
 }
 
 function main() {
@@ -188,6 +235,8 @@ function main() {
     cwd: staging,
     stdio: 'inherit',
   });
+
+  rebuildBetterSqliteForElectron(staging);
 
   fs.unlinkSync(path.join(staging, 'core.tgz'));
   fs.copyFileSync(

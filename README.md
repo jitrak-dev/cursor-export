@@ -46,6 +46,8 @@ pnpm schema:diff   # CI/local: fail if sqlite_master drifts from golden
 
 The extension depends on **`better-sqlite3`**, which ships **native binaries**. A VSIX must be built on (or for) the **same platform** users install on (e.g. `darwin-arm64` for Apple Silicon Macs). CI builds **one VSIX per target** on matching GitHub runners and publishes each to Open VSX (see [`.github/workflows/extension-publish.yml`](./.github/workflows/extension-publish.yml)).
 
+The extension host runs on **Electron**, not the same Node ABI as the `node` used in CI: after `npm install`, [`package-vsix.mjs`](./packages/vscode-ext/scripts/package-vsix.mjs) runs **`npm rebuild better-sqlite3 --runtime=electron --target=…`** so SQLite loads inside Cursor (avoids `NODE_MODULE_VERSION` mismatch errors). The default Electron version tracks [microsoft/vscode `package.json` → `devDependencies.electron`](https://github.com/microsoft/vscode/blob/main/package.json); override with **`ELECTRON_EXTENSION_HOST_VERSION`** when Cursor moves ahead and the published VSIX fails to load the native module.
+
 From the repo root:
 
 ```bash
@@ -66,7 +68,7 @@ pnpm extension:package -- --target darwin-arm64
 
 ### Publish to Open VSX (`jitrak-dev` namespace)
 
-Primary distribution is the [public Open VSX Registry](https://open-vsx.org/) (VSCodium and many VS Code–compatible editors use it). The VSIX is built by [`package-vsix.mjs`](./packages/vscode-ext/scripts/package-vsix.mjs), which stages `README.md`, `LICENSE`, compiled `out/`, `icon.png`, and `images/` (for README assets), installs production dependencies on the **current runner OS**, then runs **vsce** with `--target <platform>` from `@vscode/vsce` (`^3.0.0` in [`packages/vscode-ext/package.json`](./packages/vscode-ext/package.json)). **vsce** 3.x requires Node **20+**; this repo uses **24+**. Publishing uses the [`ovsx`](https://github.com/eclipse/openvsx) CLI via **`pnpm exec ovsx`** from the devDependency **`ovsx@0.10.1`** (same version CI uses after `pnpm install`).
+Primary distribution is the [public Open VSX Registry](https://open-vsx.org/) (VSCodium and many VS Code–compatible editors use it). The VSIX is built by [`package-vsix.mjs`](./packages/vscode-ext/scripts/package-vsix.mjs), which stages `README.md`, `LICENSE`, compiled `out/`, `icon.png`, and `images/` (for README assets), installs production dependencies on the **current runner OS**, **rebuilds `better-sqlite3` for the Electron extension host**, then runs **vsce** with `--target <platform>` from `@vscode/vsce` (`^3.0.0` in [`packages/vscode-ext/package.json`](./packages/vscode-ext/package.json)). **vsce** 3.x requires Node **20+**; this repo uses **24+**. Publishing uses the [`ovsx`](https://github.com/eclipse/openvsx) CLI via **`pnpm exec ovsx`** from the devDependency **`ovsx@0.10.1`** (same version CI uses after `pnpm install`).
 
 1. Create an **Open VSX** personal access token ([user settings → tokens](https://open-vsx.org/user-settings/tokens)). The namespace must match `publisher` in `packages/vscode-ext/package.json` (e.g. `jitrak-dev`); create the namespace first if needed ([publishing guide](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions)).
 2. From repo root (packages for **this machine’s** inferred target, then uploads every `cursor-export-<version>-*.vsix` matching that version in `packages/vscode-ext/`, or a single legacy `cursor-export-<version>.vsix` if present):
