@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/jitrak-dev/cursor-export/compare/v1.0.6...v1.0.7) (2026-05-04)
+
+
+### fix
+
+* **ext:** rebuild better-sqlite3 for Electron extension host (ABI 140) ([](https://github.com/jitrak-dev/cursor-export/commit/54f04289651dc979b7cd64cf8672383a49ce96a6))
+
 ## [1.0.6](https://github.com/jitrak-dev/cursor-export/compare/v1.0.5...v1.0.6) (2026-05-04)
 
 
