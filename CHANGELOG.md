@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/jitrak-dev/cursor-export/compare/v1.0.7...v1.1.0) (2026-05-04)
+
+
+### feat
+
+* **vscode-ext:** cursor3 composerData fallback, e2e host, dev tooling ([](https://github.com/jitrak-dev/cursor-export/commit/c51dc0e196528c236c6254c57fbe4469d881a3e8))
+
 ## [1.0.7](https://github.com/jitrak-dev/cursor-export/compare/v1.0.6...v1.0.7) (2026-05-04)
 
 
