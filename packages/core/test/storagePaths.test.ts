@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import {
+  findWorkspaceStateVscdbForFolder,
   findWorkspaceStateVscdbUnderStorageRoot,
   workspaceFolderUriToFsPath,
 } from '../src/storagePaths';
@@ -126,5 +127,33 @@ describe('findWorkspaceStateVscdbUnderStorageRoot', () => {
       platform: 'linux',
     });
     expect(found).toBeUndefined();
+  });
+
+  it('uses editorUserDirectory for remote-style User layout (e.g. .cursor-server)', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-sp-editoruser-'),
+    );
+    const remoteUser = path.join(tmp, 'User');
+    const wsRoot = path.join(remoteUser, 'workspaceStorage');
+    const proj = path.join(tmp, 'proj');
+    fs.mkdirSync(proj, { recursive: true });
+    const id = 'remoteabc999';
+    const dir = path.join(wsRoot, id);
+    fs.mkdirSync(dir, { recursive: true });
+    const projForUri = proj.split(path.sep).join('/');
+    fs.writeFileSync(
+      path.join(dir, 'workspace.json'),
+      JSON.stringify({
+        folder: `vscode-remote://wsl+ubuntu${projForUri}`,
+      }),
+      'utf8',
+    );
+    fs.writeFileSync(path.join(dir, 'state.vscdb'), '', 'utf8');
+
+    const found = findWorkspaceStateVscdbForFolder(proj, 'cursor', {
+      platform: 'linux',
+      editorUserDirectory: remoteUser,
+    });
+    expect(found).toBe(path.join(dir, 'state.vscdb'));
   });
 });

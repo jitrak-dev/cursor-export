@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 import {
@@ -53,6 +55,42 @@ function resolveEditorVariant(): 'cursor' | 'vscode' {
   return editorVariantFromAppName(vscode.env.appName) ?? 'cursor';
 }
 
+function isDirectorySync(p: string): boolean {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * In remote extension hosts (WSL, SSH, Dev Container), Cursor/VS Code stores
+ * `workspaceStorage` under `~/.cursor-server/data/User` or `~/.vscode-server/data/User`,
+ * not under the desktop default `~/.config/Cursor/User` (Linux).
+ */
+function editorUserDirectoryForExtensionHost(variant: 'cursor' | 'vscode'): {
+  editorUserDirectory?: string;
+} {
+  const remote = vscode.env.remoteName;
+  if (remote == null || remote === '') {
+    return {};
+  }
+  const home = os.homedir();
+  const candidates =
+    variant === 'cursor'
+      ? [
+          path.join(home, '.cursor-server', 'data', 'User'),
+          path.join(home, '.vscode-server', 'data', 'User'),
+        ]
+      : [path.join(home, '.vscode-server', 'data', 'User')];
+  for (const dir of candidates) {
+    if (isDirectorySync(dir)) {
+      return { editorUserDirectory: dir };
+    }
+  }
+  return {};
+}
+
 /**
  * Registers settings-driven file watching (single-root v1), debounced export,
  * commands, and a small status item when watching is enabled.
@@ -92,6 +130,7 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
     }
 
     const variant = resolveEditorVariant();
+    const storageOpts = editorUserDirectoryForExtensionHost(variant);
     const cfg = readCursorExportConfig();
     const outDir = resolveOutputDirectory(
       folder.uri.fsPath,
@@ -102,6 +141,7 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
       const result = exportWorkspaceChats({
         workspaceFolderPath: folder.uri.fsPath,
         editorVariant: variant,
+        ...storageOpts,
         outputDirectory: outDir,
         ...(cfg.workspaceStateDbPath
           ? { workspaceStateDbPath: cfg.workspaceStateDbPath }
@@ -157,10 +197,11 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
     }
 
     const variant = resolveEditorVariant();
-    const globalPath = resolveGlobalStateVscdbPath(variant);
+    const storageOpts = editorUserDirectoryForExtensionHost(variant);
+    const globalPath = resolveGlobalStateVscdbPath(variant, storageOpts);
     const workspaceDb =
       cfg.workspaceStateDbPath ??
-      findWorkspaceStateVscdbForFolder(folder.uri.fsPath, variant);
+      findWorkspaceStateVscdbForFolder(folder.uri.fsPath, variant, storageOpts);
     const paths = [globalPath, workspaceDb].filter(
       (p): p is string => typeof p === 'string' && p.length > 0,
     );

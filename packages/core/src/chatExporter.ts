@@ -37,6 +37,13 @@ import {
 export interface ChatExporterOptions {
   workspaceFolderPath: string;
   editorVariant: EditorVariant;
+  /**
+   * When set, used as the editor `User` directory (contains `workspaceStorage/`, `globalStorage/`).
+   * Required for correct resolution in **remote** extension hosts (WSL, SSH, Dev Container), where
+   * data lives under `~/.cursor-server/data/User` or `~/.vscode-server/data/User` instead of the
+   * desktop default (`~/.config/Cursor/User` on Linux).
+   */
+  editorUserDirectory?: string;
   /** Defaults to `<workspace>/.cursor/chats`. */
   outputDirectory?: string;
   globalStateDbPath?: string;
@@ -137,15 +144,20 @@ export function exportWorkspaceChats(
     options.outputDirectory ??
     path.join(options.workspaceFolderPath, '.cursor', 'chats');
 
+  const pathOpts = options.editorUserDirectory
+    ? { editorUserDirectory: options.editorUserDirectory }
+    : undefined;
+
   const globalPath =
     options.globalStateDbPath ??
-    resolveGlobalStateVscdbPath(options.editorVariant);
+    resolveGlobalStateVscdbPath(options.editorVariant, pathOpts);
 
   const workspaceDbPath =
     options.workspaceStateDbPath ??
     findWorkspaceStateVscdbForFolder(
       options.workspaceFolderPath,
       options.editorVariant,
+      pathOpts,
     );
 
   if (!workspaceDbPath) {
