@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/jitrak-dev/cursor-export/compare/v1.0.3...v1.0.4) (2026-05-04)
+
+
+### fix
+
+* **ext:** platform-specific VSIX builds for better-sqlite3 (B1) ([](https://github.com/jitrak-dev/cursor-export/commit/86218b44c52eeca00cbe5e03b9b0cb3a79181c7f))
+
 ## [1.0.3](https://github.com/jitrak-dev/cursor-export/compare/v1.0.2...v1.0.3) (2026-05-03)
 
 
