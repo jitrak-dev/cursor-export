@@ -1,9 +1,14 @@
 /**
  * Build a redistributable .vsix without running `npm list` on the pnpm workspace.
  * Stages a folder, `npm install` production deps from packed core + chokidar, then
- * `vsce package` using the `@vscode/vsce` (v3+) binary from `packages/vscode-ext/node_modules`.
- * Staging copies `images/` so README-relative PNGs satisfy vsce 3 (no SVG in README).
- * Intended for Linux / macOS / WSL (POSIX).
+ * `vsce package --target <platform>` so `better-sqlite3` native binaries match the OS.
+ *
+ * Usage:
+ *   node ./scripts/package-vsix.mjs
+ *   node ./scripts/package-vsix.mjs --target darwin-arm64
+ *
+ * Without `--target`, infers from `process.platform` / `process.arch` (see inferVsceTarget).
+ * Output: `packages/vscode-ext/cursor-export-<version>-<target>.vsix`
  */
 import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -16,11 +21,89 @@ const repoRoot = path.resolve(extRoot, '../..');
 const coreRoot = path.resolve(extRoot, '../core');
 const staging = path.join(extRoot, '.vsix-staging');
 
+/** @type {readonly string[]} */
+const VALID_VSCE_TARGETS = [
+  'win32-x64',
+  'win32-arm64',
+  'linux-x64',
+  'linux-arm64',
+  'linux-armhf',
+  'darwin-x64',
+  'darwin-arm64',
+  'alpine-x64',
+  'alpine-arm64',
+  'web',
+];
+
 function rmrf(dir) {
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
+function printUsage() {
+  console.log(`Usage: node ./scripts/package-vsix.mjs [--target <platform>]
+
+Builds a platform-specific VSIX (required for correct better-sqlite3 native bindings).
+
+--target   One of: ${VALID_VSCE_TARGETS.join(', ')}
+           If omitted, inferred from this machine (process.platform / process.arch).
+
+Examples:
+  node ./scripts/package-vsix.mjs --target linux-x64
+  node ./scripts/package-vsix.mjs --target darwin-arm64
+`);
+}
+
+function parseArgs(argv) {
+  if (argv.includes('-h') || argv.includes('--help')) {
+    printUsage();
+    process.exit(0);
+  }
+  let target;
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--target' && argv[i + 1]) {
+      target = argv[i + 1];
+      i++;
+    }
+  }
+  return { target };
+}
+
+function inferVsceTarget() {
+  const p = process.platform;
+  const a = process.arch;
+  if (p === 'darwin') {
+    return a === 'arm64' ? 'darwin-arm64' : 'darwin-x64';
+  }
+  if (p === 'linux') {
+    if (a === 'arm64') {
+      return 'linux-arm64';
+    }
+    if (a === 'arm') {
+      return 'linux-armhf';
+    }
+    return 'linux-x64';
+  }
+  if (p === 'win32') {
+    return a === 'arm64' ? 'win32-arm64' : 'win32-x64';
+  }
+  throw new Error(
+    `Cannot infer VSCE target for platform=${p} arch=${a}. Pass --target explicitly (see --help).`,
+  );
+}
+
+function assertValidTarget(target) {
+  if (!VALID_VSCE_TARGETS.includes(target)) {
+    throw new Error(
+      `Invalid --target "${target}". Must be one of: ${VALID_VSCE_TARGETS.join(', ')}`,
+    );
+  }
+}
+
 function main() {
+  const { target: targetArg } = parseArgs(process.argv.slice(2));
+  const target = targetArg ?? inferVsceTarget();
+  assertValidTarget(target);
+
   execSync('pnpm exec tsc -b', { cwd: repoRoot, stdio: 'inherit' });
 
   const packOut = execSync('pnpm pack', {
@@ -112,7 +195,7 @@ function main() {
     path.join(staging, '.vscodeignore'),
   );
 
-  const vsixName = `cursor-export-${version}.vsix`;
+  const vsixName = `cursor-export-${version}-${target}.vsix`;
   const vsixPath = path.join(extRoot, vsixName);
   const vsceBin = path.join(extRoot, 'node_modules', '.bin', 'vsce');
   if (!fs.existsSync(vsceBin)) {
@@ -120,7 +203,7 @@ function main() {
       `vsce not found at ${vsceBin}. Run pnpm install from the repo root.`,
     );
   }
-  execSync(`"${vsceBin}" package -o "${vsixPath}"`, {
+  execSync(`"${vsceBin}" package --target "${target}" -o "${vsixPath}"`, {
     cwd: staging,
     stdio: 'inherit',
     shell: true,
@@ -131,7 +214,7 @@ function main() {
     fs.unlinkSync(tgzSource);
   }
 
-  console.log(`Wrote ${vsixPath}`);
+  console.log(`Wrote ${vsixPath} (target=${target})`);
 }
 
 main();
