@@ -36,15 +36,29 @@ export interface MinimalCursor3FixturePaths {
   readonly workspaceFolderPath: string;
 }
 
+export interface WriteMinimalCursor3FixtureOptions {
+  includeModel?: boolean;
+  /**
+   * Where `composerData:<composerId>` is stored. Recent Cursor builds may persist
+   * per-composer blobs in workspace `state.vscdb` while `composer.composerHeaders`
+   * remains in the global DB.
+   */
+  composerDataItemTableDb?: 'global' | 'workspace';
+  /** Inline `conversationMap` vs `cursorDiskKV` bubble payloads (same layout Cursor uses when map is externalized). */
+  messageStorage?: 'inline' | 'diskKv';
+}
+
 /**
  * Writes two tiny `state.vscdb` files (global + workspace storage layout) that
  * match the Cursor 3.x ItemTable + `composer.composerHeaders` index shape.
  */
 export function writeMinimalCursor3Fixture(
   fixtureRoot: string,
-  options?: { includeModel?: boolean },
+  options?: WriteMinimalCursor3FixtureOptions,
 ): MinimalCursor3FixturePaths {
   const includeModel = options?.includeModel ?? true;
+  const composerDataItemTableDb = options?.composerDataItemTableDb ?? 'global';
+  const messageStorage = options?.messageStorage ?? 'inline';
   fs.mkdirSync(path.join(fixtureRoot, WORKSPACE_STORAGE_DIR), {
     recursive: true,
   });
@@ -89,21 +103,45 @@ export function writeMinimalCursor3Fixture(
         { bubbleId: 'b1', type: 1 },
         { bubbleId: 'b2', type: 2 },
       ],
-      conversationMap: {
+    };
+    if (messageStorage === 'inline') {
+      composerData['conversationMap'] = {
         b1: { text: 'Hello from fixture user' },
         b2: { text: 'Hello from fixture assistant' },
-      },
-    };
+      };
+    }
     if (includeModel) {
       composerData['modelConfig'] = { modelName: 'fixture-model-x' };
     }
 
+    const composerDataDb =
+      composerDataItemTableDb === 'workspace' ? wsDb : globalDb;
     insertJsonValue(
-      globalDb,
+      composerDataDb,
       'ItemTable',
       `composerData:${FIXTURE_COMPOSER_ID}`,
       composerData,
     );
+
+    if (messageStorage === 'diskKv') {
+      const kvDb = composerDataDb;
+      insertJsonValue(
+        kvDb,
+        'cursorDiskKV',
+        `bubbleId:${FIXTURE_COMPOSER_ID}:b1`,
+        {
+          text: 'Hello from fixture user',
+        },
+      );
+      insertJsonValue(
+        kvDb,
+        'cursorDiskKV',
+        `bubbleId:${FIXTURE_COMPOSER_ID}:b2`,
+        {
+          text: 'Hello from fixture assistant',
+        },
+      );
+    }
   } finally {
     globalDb.close();
     wsDb.close();

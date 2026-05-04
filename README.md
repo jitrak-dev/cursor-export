@@ -31,6 +31,24 @@ pnpm lint
 pnpm format:check
 ```
 
+### Extension E2E (real VS Code Extension Host)
+
+Smoke tests use [`@vscode/test-electron`](https://www.npmjs.com/package/@vscode/test-electron) against a **pinned** VS Code build (`packages/vscode-ext/scripts/e2e-host-versions.json`). They activate this repo’s extension and assert contributed commands exist.
+
+From repo root (builds the workspace, rebuilds `better-sqlite3` for that build’s Electron ABI, then launches VS Code):
+
+```bash
+pnpm test:e2e
+```
+
+**Linux / WSL / CI:** VS Code is Electron and needs a display. If you have no working X server, install **`xvfb`** and either leave `DISPLAY` unset or force a virtual display:
+
+```bash
+E2E_USE_XVFB=1 pnpm test:e2e
+```
+
+GitHub Actions Linux jobs should use something like [`coactions/setup-xvfb`](https://github.com/coactions/setup-xvfb) or `xvfb-run -a` around `pnpm test:e2e`. **`better-sqlite3`** must match the pinned extension-host Electron (the `test:e2e` script runs `rebuild-better-sqlite-for-e2e.mjs` automatically). If you bump the VS Code pin, update the **`electron`** field in the same JSON (see `microsoft/vscode` `package.json` at that tag). The launcher **rebuilds `better-sqlite3` back for Node** after E2E so `pnpm test` keeps working; running **`rebuild:e2e-native` alone** still leaves the Electron binary until you run a normal Node rebuild.
+
 ### Commits
 
 This repo uses [Conventional Commits](https://www.conventionalcommits.org/). The Husky [`commit-msg`](./.husky/commit-msg) hook runs [commitlint](https://commitlint.js.org/) (`commitlint.config.js`) so messages stay parseable for automated releases.

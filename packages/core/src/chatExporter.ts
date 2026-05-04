@@ -80,16 +80,22 @@ type OneExportResult =
 
 function runOneComposerExport(opts: {
   globalDb: SqliteDatabase;
+  workspaceDb: SqliteDatabase;
   summary: ComposerSummary;
   outDir: string;
   occupiedStems: Set<string>;
 }): OneExportResult {
-  const data = loadComposerDataJson(opts.globalDb, opts.summary.composerId);
+  const data = loadComposerDataJson(
+    opts.globalDb,
+    opts.summary.composerId,
+    opts.workspaceDb,
+  );
   if (!data) {
     return {
       kind: 'skip',
       composerId: opts.summary.composerId,
-      reason: 'Missing composerData entry in global DB',
+      reason:
+        'Missing composerData entry in global or workspace ItemTable (composerData:<id>)',
     };
   }
 
@@ -116,6 +122,7 @@ function runOneComposerExport(opts: {
     opts.globalDb,
     opts.summary.composerId,
     data,
+    opts.workspaceDb,
   );
   const md = buildYamlFrontMatter({ title, model, updatedIso }) + body;
   writeTextFileAtomic(absPath, md);
@@ -167,7 +174,8 @@ export function exportWorkspaceChats(
       skipped: [
         {
           composerId: '*',
-          reason: 'Could not resolve workspace state.vscdb path',
+          reason:
+            'Could not resolve workspace state.vscdb path (open this folder in the editor once, or set cursorExport.workspaceStateDbPath to the workspaceStorage/*/state.vscdb file)',
         },
       ],
       outputDirectory: outDir,
@@ -191,6 +199,9 @@ export function exportWorkspaceChats(
   const { composers } = listComposersForWorkspace(listOpts);
 
   const gdb = openStateVscdbReadonly(globalPath, { busyTimeoutMs: busyMs });
+  const wdb = openStateVscdbReadonly(workspaceDbPath, {
+    busyTimeoutMs: busyMs,
+  });
   const exported: ExportedChatFile[] = [];
   const skipped: SkippedChatExport[] = [];
   const indexEntries: Record<string, ChatIndexEntryV1> = {};
@@ -200,6 +211,7 @@ export function exportWorkspaceChats(
     for (const c of composers) {
       const row = runOneComposerExport({
         globalDb: gdb,
+        workspaceDb: wdb,
         summary: c,
         outDir,
         occupiedStems,
@@ -217,6 +229,7 @@ export function exportWorkspaceChats(
     }
   } finally {
     gdb.close();
+    wdb.close();
   }
 
   const indexAbs = path.join(outDir, 'index.json');

@@ -87,7 +87,7 @@ function bodyFromConversationMap(data: JsonObject): string | undefined {
   return chunks.join('\n');
 }
 
-function bodyFromCursorDiskKv(
+function bodyFromCursorDiskKvOneDb(
   db: SqliteDatabase,
   composerId: string,
   data: JsonObject,
@@ -126,29 +126,75 @@ function bodyFromCursorDiskKv(
   return chunks.join('\n');
 }
 
+function bodyFromCursorDiskKv(
+  globalDb: SqliteDatabase,
+  workspaceDb: SqliteDatabase | undefined,
+  composerId: string,
+  data: JsonObject,
+): string | undefined {
+  const primary = bodyFromCursorDiskKvOneDb(globalDb, composerId, data);
+  if (primary != null && primary.length > 0) {
+    return primary;
+  }
+  if (workspaceDb) {
+    return bodyFromCursorDiskKvOneDb(workspaceDb, composerId, data);
+  }
+  return undefined;
+}
+
+/**
+ * @param workspaceDb Optional workspace `state.vscdb` — newer Cursor builds may store
+ *   `composerData:{id}` and `cursorDiskKV` bubble payloads there while the composer index
+ *   stays in the global DB (`composer.composerHeaders`).
+ */
 export function buildComposerMarkdownBody(
   globalDb: SqliteDatabase,
   composerId: string,
   data: JsonObject,
+  workspaceDb?: SqliteDatabase,
 ): string {
   const legacy = bodyFromConversationMap(data);
   if (legacy != null && legacy.length > 0) {
     return legacy;
   }
-  const fromDisk = bodyFromCursorDiskKv(globalDb, composerId, data);
+  const fromDisk = bodyFromCursorDiskKv(
+    globalDb,
+    workspaceDb,
+    composerId,
+    data,
+  );
   if (fromDisk != null && fromDisk.length > 0) {
     return fromDisk;
   }
   return '_No message text could be exported for this conversation._\n';
 }
 
-export function loadComposerDataJson(
-  globalDb: SqliteDatabase,
+function readComposerDataItemTable(
+  db: SqliteDatabase,
   composerId: string,
 ): JsonObject | undefined {
-  const raw = getItemTableJson(globalDb, `composerData:${composerId}`);
+  const raw = getItemTableJson(db, `composerData:${composerId}`);
   if (!isJsonObject(raw)) {
     return undefined;
   }
   return raw;
+}
+
+/**
+ * Reads per-composer JSON from ItemTable (`composerData:{composerId}`).
+ * Tries global DB first (historical Cursor 3 default), then workspace DB (recent layouts).
+ */
+export function loadComposerDataJson(
+  globalDb: SqliteDatabase,
+  composerId: string,
+  workspaceDb?: SqliteDatabase,
+): JsonObject | undefined {
+  const fromGlobal = readComposerDataItemTable(globalDb, composerId);
+  if (fromGlobal) {
+    return fromGlobal;
+  }
+  if (workspaceDb) {
+    return readComposerDataItemTable(workspaceDb, composerId);
+  }
+  return undefined;
 }

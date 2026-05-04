@@ -8,7 +8,8 @@
   "scripts": {
     "prepare": "husky",
     "build": "tsc -b",
-    "test": "pnpm --filter @cursor-export/core test",
+    "test": "pnpm build && pnpm -r test",
+    "test:e2e": "pnpm build && pnpm --filter cursor-export run test:e2e",
     "lint": "eslint eslint.config.mjs \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

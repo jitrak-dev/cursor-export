@@ -102,4 +102,60 @@ describe('exportWorkspaceChats (Cursor 3 fixture)', () => {
     const fm = parseYamlFrontMatter(md);
     expect(fm['model']).toBe('unknown');
   });
+
+  it('exports when composerData ItemTable row lives in workspace DB (Cursor 3)', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
+      includeModel: true,
+      composerDataItemTableDb: 'workspace',
+    });
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    const result = exportWorkspaceChats({
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor',
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    });
+
+    expect(result.profileVersion).toBe('cursor3');
+    expect(result.skipped).toHaveLength(0);
+    expect(result.exported).toHaveLength(1);
+    const rel = result.exported[0]?.relativePath;
+    const md = fs.readFileSync(path.join(outDir, rel ?? ''), 'utf8');
+    expect(md).toContain('Hello from fixture user');
+  });
+
+  it('reads bubble text from workspace cursorDiskKV when composerData is workspace-local', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
+      composerDataItemTableDb: 'workspace',
+      messageStorage: 'diskKv',
+    });
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    const result = exportWorkspaceChats({
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor',
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    });
+
+    expect(result.exported).toHaveLength(1);
+    const md = fs.readFileSync(
+      path.join(outDir, result.exported[0]?.relativePath ?? ''),
+      'utf8',
+    );
+    expect(md).toContain('Hello from fixture assistant');
+  });
 });

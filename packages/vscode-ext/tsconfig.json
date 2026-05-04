@@ -9,7 +9,7 @@
     "rootDir": "src",
     "outDir": "out",
     "sourceMap": true,
-    "types": ["node", "vscode"]
+    "types": ["node", "vscode", "mocha"]
   },
   "include": ["src/**/*.ts"],
   "references": [{ "path": "../core" }]

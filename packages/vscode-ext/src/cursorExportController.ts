@@ -1,5 +1,3 @@
-import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
 
 import {
@@ -55,40 +53,22 @@ function resolveEditorVariant(): 'cursor' | 'vscode' {
   return editorVariantFromAppName(vscode.env.appName) ?? 'cursor';
 }
 
-function isDirectorySync(p: string): boolean {
-  try {
-    return fs.statSync(p).isDirectory();
-  } catch {
-    return false;
-  }
-}
-
 /**
- * In remote extension hosts (WSL, SSH, Dev Container), Cursor/VS Code stores
- * `workspaceStorage` under `~/.cursor-server/data/User` or `~/.vscode-server/data/User`,
- * not under the desktop default `~/.config/Cursor/User` (Linux).
+ * Resolve the editor `User` directory for this extension host (contains
+ * `workspaceStorage/`, `globalStorage/`). Uses `globalStorageUri`, which always
+ * lives under `.../User/globalStorage/<extension-id>/`, so it matches desktop
+ * Linux/macOS/Windows, WSL, SSH, and dev containers without hard-coding
+ * `~/.config/Cursor` vs `~/.cursor-server/data` paths.
  */
-function editorUserDirectoryForExtensionHost(variant: 'cursor' | 'vscode'): {
-  editorUserDirectory?: string;
-} {
-  const remote = vscode.env.remoteName;
-  if (remote == null || remote === '') {
-    return {};
-  }
-  const home = os.homedir();
-  const candidates =
-    variant === 'cursor'
-      ? [
-          path.join(home, '.cursor-server', 'data', 'User'),
-          path.join(home, '.vscode-server', 'data', 'User'),
-        ]
-      : [path.join(home, '.vscode-server', 'data', 'User')];
-  for (const dir of candidates) {
-    if (isDirectorySync(dir)) {
-      return { editorUserDirectory: dir };
-    }
-  }
-  return {};
+function editorUserDirectoryFromExtensionContext(
+  context: vscode.ExtensionContext,
+): { editorUserDirectory: string } {
+  const globalStorage = context.globalStorageUri.fsPath;
+  return {
+    editorUserDirectory: path.resolve(
+      path.dirname(path.dirname(globalStorage)),
+    ),
+  };
 }
 
 /**
@@ -130,7 +110,7 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
     }
 
     const variant = resolveEditorVariant();
-    const storageOpts = editorUserDirectoryForExtensionHost(variant);
+    const storageOpts = editorUserDirectoryFromExtensionContext(context);
     const cfg = readCursorExportConfig();
     const outDir = resolveOutputDirectory(
       folder.uri.fsPath,
@@ -197,7 +177,7 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
     }
 
     const variant = resolveEditorVariant();
-    const storageOpts = editorUserDirectoryForExtensionHost(variant);
+    const storageOpts = editorUserDirectoryFromExtensionContext(context);
     const globalPath = resolveGlobalStateVscdbPath(variant, storageOpts);
     const workspaceDb =
       cfg.workspaceStateDbPath ??

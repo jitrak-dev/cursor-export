@@ -76,6 +76,10 @@
   },
   "scripts": {
     "build": "tsc -b",
+    "rebuild:e2e-native": "node ./scripts/rebuild-better-sqlite-for-e2e.mjs",
+    "pretest": "pnpm --filter @cursor-export/core run build",
+    "test": "vitest run",
+    "test:e2e": "node ./scripts/run-e2e-test-host.mjs",
     "watch": "tsc -b -w",
     "vscode:prepublish": "pnpm run build",
     "vsix": "node ./scripts/package-vsix.mjs",
@@ -86,9 +90,13 @@
     "chokidar": "^3.6.0"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.0",
     "@types/vscode": "^1.95.0",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.0.0",
-    "ovsx": "0.10.1"
+    "mocha": "^11.7.5",
+    "ovsx": "0.10.1",
+    "vitest": "^4.1.5"
   }
 }
