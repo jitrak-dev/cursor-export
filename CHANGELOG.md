@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/jitrak-dev/cursor-export/compare/v1.0.4...v1.0.5) (2026-05-04)
+
+
+### fix
+
+* **ci:** use macos-15-intel for darwin-x64 Open VSX publish ([](https://github.com/jitrak-dev/cursor-export/commit/6ddb522ed3510b6da3229570c619bc3d34054443))
+
 ## [1.0.4](https://github.com/jitrak-dev/cursor-export/compare/v1.0.3...v1.0.4) (2026-05-04)
 
 

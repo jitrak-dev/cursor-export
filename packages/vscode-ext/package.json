@@ -2,7 +2,7 @@
   "name": "cursor-export",
   "displayName": "Cursor Export",
   "icon": "icon.png",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "publisher": "jitrak-dev",
   "description": "Export Cursor chats to .cursor/chats (workspace)",
   "license": "MIT",
