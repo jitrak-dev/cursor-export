@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/jitrak-dev/cursor-export/compare/v1.0.5...v1.0.6) (2026-05-04)
+
+
+### fix
+
+* **ext:** resolve state.vscdb under remote User dir (WSL/SSH) ([](https://github.com/jitrak-dev/cursor-export/commit/8451d45ab9220709dc71d6613736bdce93f0a6e9))
+
 ## [1.0.5](https://github.com/jitrak-dev/cursor-export/compare/v1.0.4...v1.0.5) (2026-05-04)
 
 
