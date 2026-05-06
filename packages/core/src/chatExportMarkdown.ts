@@ -169,11 +169,18 @@ export function buildComposerMarkdownBody(
   return '_No message text could be exported for this conversation._\n';
 }
 
-function readComposerDataItemTable(
+type ComposerDataTable = 'ItemTable' | 'cursorDiskKV';
+
+function readComposerDataFromTable(
   db: SqliteDatabase,
   composerId: string,
+  table: ComposerDataTable,
 ): JsonObject | undefined {
-  const raw = getItemTableJson(db, `composerData:${composerId}`);
+  const key = `composerData:${composerId}`;
+  const raw =
+    table === 'ItemTable'
+      ? getItemTableJson(db, key)
+      : getCursorDiskKvJson(db, key);
   if (!isJsonObject(raw)) {
     return undefined;
   }
@@ -181,20 +188,64 @@ function readComposerDataItemTable(
 }
 
 /**
- * Reads per-composer JSON from ItemTable (`composerData:{composerId}`).
- * Tries global DB first (historical Cursor 3 default), then workspace DB (recent layouts).
+ * Reads per-composer JSON for a given `composerId`.
+ *
+ * Probes in this order to cover every Cursor storage layout we've seen:
+ *   1. `ItemTable` in the global `state.vscdb` (historical Cursor 3 default).
+ *   2. `ItemTable` in the workspace `state.vscdb` (recent layouts where
+ *      Cursor migrated the per-composer blob into the workspace DB).
+ *   3. `cursorDiskKV` in the global `state.vscdb` (current Cursor builds —
+ *      `composerData:<id>` and `bubbleId:<composerId>:<bubbleId>` rows are
+ *      now stored as JSON blobs in the global key/value table).
+ *   4. `cursorDiskKV` in the workspace `state.vscdb` (rare workspace-local
+ *      variant of #3).
+ *
+ * The shape of the parsed value (`name`, `modelConfig.modelName`,
+ * `fullConversationHeadersOnly`, …) is the same regardless of where the row
+ * lives, so callers do not need to know which table answered.
  */
 export function loadComposerDataJson(
   globalDb: SqliteDatabase,
   composerId: string,
   workspaceDb?: SqliteDatabase,
 ): JsonObject | undefined {
-  const fromGlobal = readComposerDataItemTable(globalDb, composerId);
-  if (fromGlobal) {
-    return fromGlobal;
+  const fromGlobalItem = readComposerDataFromTable(
+    globalDb,
+    composerId,
+    'ItemTable',
+  );
+  if (fromGlobalItem) {
+    return fromGlobalItem;
   }
   if (workspaceDb) {
-    return readComposerDataItemTable(workspaceDb, composerId);
+    const fromWorkspaceItem = readComposerDataFromTable(
+      workspaceDb,
+      composerId,
+      'ItemTable',
+    );
+    if (fromWorkspaceItem) {
+      return fromWorkspaceItem;
+    }
+  }
+  if (hasCursorDiskKvTable(globalDb)) {
+    const fromGlobalKv = readComposerDataFromTable(
+      globalDb,
+      composerId,
+      'cursorDiskKV',
+    );
+    if (fromGlobalKv) {
+      return fromGlobalKv;
+    }
+  }
+  if (workspaceDb && hasCursorDiskKvTable(workspaceDb)) {
+    const fromWorkspaceKv = readComposerDataFromTable(
+      workspaceDb,
+      composerId,
+      'cursorDiskKV',
+    );
+    if (fromWorkspaceKv) {
+      return fromWorkspaceKv;
+    }
   }
   return undefined;
 }

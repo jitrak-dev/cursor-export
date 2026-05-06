@@ -39,11 +39,17 @@ export interface MinimalCursor3FixturePaths {
 export interface WriteMinimalCursor3FixtureOptions {
   includeModel?: boolean;
   /**
-   * Where `composerData:<composerId>` is stored. Recent Cursor builds may persist
-   * per-composer blobs in workspace `state.vscdb` while `composer.composerHeaders`
-   * remains in the global DB.
+   * Which `state.vscdb` holds the `composerData:<composerId>` row. Recent
+   * Cursor builds may persist per-composer blobs in workspace `state.vscdb`
+   * while `composer.composerHeaders` stays in the global DB.
    */
   composerDataItemTableDb?: 'global' | 'workspace';
+  /**
+   * Which table inside the chosen DB holds the `composerData:<composerId>`
+   * row. Defaults to `ItemTable` (older Cursor 3 layout). Current Cursor
+   * builds store it in `cursorDiskKV` instead.
+   */
+  composerDataTable?: 'ItemTable' | 'cursorDiskKV';
   /** Inline `conversationMap` vs `cursorDiskKV` bubble payloads (same layout Cursor uses when map is externalized). */
   messageStorage?: 'inline' | 'diskKv';
 }
@@ -58,6 +64,7 @@ export function writeMinimalCursor3Fixture(
 ): MinimalCursor3FixturePaths {
   const includeModel = options?.includeModel ?? true;
   const composerDataItemTableDb = options?.composerDataItemTableDb ?? 'global';
+  const composerDataTable = options?.composerDataTable ?? 'ItemTable';
   const messageStorage = options?.messageStorage ?? 'inline';
   fs.mkdirSync(path.join(fixtureRoot, WORKSPACE_STORAGE_DIR), {
     recursive: true,
@@ -118,7 +125,7 @@ export function writeMinimalCursor3Fixture(
       composerDataItemTableDb === 'workspace' ? wsDb : globalDb;
     insertJsonValue(
       composerDataDb,
-      'ItemTable',
+      composerDataTable,
       `composerData:${FIXTURE_COMPOSER_ID}`,
       composerData,
     );

@@ -30,6 +30,7 @@ import {
 import {
   type EditorVariant,
   findWorkspaceStateVscdbForFolder,
+  pickExistingGlobalStateVscdbPath,
   resolveGlobalStateVscdbPath,
   workspaceStorageIdFromStateVscdbPath,
 } from './storagePaths';
@@ -95,7 +96,7 @@ function runOneComposerExport(opts: {
       kind: 'skip',
       composerId: opts.summary.composerId,
       reason:
-        'Missing composerData entry in global or workspace ItemTable (composerData:<id>)',
+        'Missing composerData entry in global or workspace state.vscdb (looked up composerData:<id> in ItemTable and cursorDiskKV)',
     };
   }
 
@@ -157,6 +158,7 @@ export function exportWorkspaceChats(
 
   const globalPath =
     options.globalStateDbPath ??
+    pickExistingGlobalStateVscdbPath(options.editorVariant, pathOpts) ??
     resolveGlobalStateVscdbPath(options.editorVariant, pathOpts);
 
   const workspaceDbPath =

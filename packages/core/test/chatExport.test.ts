@@ -131,6 +131,74 @@ describe('exportWorkspaceChats (Cursor 3 fixture)', () => {
     expect(md).toContain('Hello from fixture user');
   });
 
+  it('exports when composerData lives in global cursorDiskKV (current Cursor layout)', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
+      includeModel: true,
+      composerDataItemTableDb: 'global',
+      composerDataTable: 'cursorDiskKV',
+      messageStorage: 'diskKv',
+    });
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    const result = exportWorkspaceChats({
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor',
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    });
+
+    expect(result.profileVersion).toBe('cursor3');
+    expect(result.skipped).toHaveLength(0);
+    expect(result.exported).toHaveLength(1);
+    const rel = result.exported[0]?.relativePath;
+    const md = fs.readFileSync(path.join(outDir, rel ?? ''), 'utf8');
+    const fm = parseYamlFrontMatter(md);
+    expect(fm['title']).toBe('Fixture Alpha Chat');
+    expect(fm['model']).toBe('fixture-model-x');
+    expect(md).toContain('## User');
+    expect(md).toContain('Hello from fixture user');
+    expect(md).toContain('## Assistant');
+    expect(md).toContain('Hello from fixture assistant');
+  });
+
+  it('exports when composerData lives in workspace cursorDiskKV', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
+      includeModel: true,
+      composerDataItemTableDb: 'workspace',
+      composerDataTable: 'cursorDiskKV',
+      messageStorage: 'diskKv',
+    });
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    const result = exportWorkspaceChats({
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor',
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    });
+
+    expect(result.skipped).toHaveLength(0);
+    expect(result.exported).toHaveLength(1);
+    const md = fs.readFileSync(
+      path.join(outDir, result.exported[0]?.relativePath ?? ''),
+      'utf8',
+    );
+    expect(md).toContain('Hello from fixture user');
+    expect(md).toContain('Hello from fixture assistant');
+  });
+
   it('reads bubble text from workspace cursorDiskKV when composerData is workspace-local', () => {
     const tmp = fs.mkdtempSync(
       path.join(os.tmpdir(), 'cursor-export-core-test-'),

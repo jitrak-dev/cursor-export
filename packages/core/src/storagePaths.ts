@@ -104,6 +104,151 @@ export function resolveGlobalStateVscdbPath(
 }
 
 /**
+ * Common drvfs/9p mount roots where the Windows host's `C:\` is exposed
+ * inside WSL. Default WSL2 uses `/mnt/c`; advanced configs may set
+ * `automount.root = /` (which yields `/c`). We probe both so the desktop
+ * `Cursor` user data dir on Windows is discoverable from the WSL extension
+ * host without configuration.
+ */
+const WSL_WINDOWS_USERS_ROOT_CANDIDATES: readonly string[] = [
+  '/mnt/c/Users',
+  '/c/Users',
+];
+
+/** True when the current process looks like a Linux extension host inside WSL. */
+function isLikelyWslLinuxRuntime(
+  env: NodeJS.ProcessEnv,
+  platform: NodeJS.Platform,
+): boolean {
+  if (platform !== 'linux') {
+    return false;
+  }
+  const distro = env.WSL_DISTRO_NAME?.trim();
+  const interop = env.WSL_INTEROP?.trim();
+  return Boolean(
+    (distro && distro.length > 0) || (interop && interop.length > 0),
+  );
+}
+
+/**
+ * In a Cursor Remote-WSL setup the GUI process is the Windows-side desktop,
+ * so per-workspace `state.vscdb` (and the global one) live under
+ * `%APPDATA%\Cursor\User` on the Windows host — *not* under the Linux
+ * `~/.cursor-server/data/User` that the extension host sees as its `User` dir.
+ * Enumerate Windows user profiles via the drvfs mount and return any
+ * `<root>/<user>/AppData/Roaming/<App>/User` directories that exist.
+ */
+function enumerateWindowsHostEditorUserDirectoriesForWsl(
+  variant: EditorVariant,
+  options?: FindWorkspaceStateOptions,
+): string[] {
+  const fsImpl = options?.fsImpl ?? fs;
+  const env = getEnv(options);
+  const platform = options?.platform ?? process.platform;
+  if (!isLikelyWslLinuxRuntime(env, platform)) {
+    return [];
+  }
+  const app = appFolderName(variant);
+  const found: string[] = [];
+  const seen = new Set<string>();
+  for (const usersRoot of WSL_WINDOWS_USERS_ROOT_CANDIDATES) {
+    let users: string[];
+    try {
+      users = fsImpl.readdirSync(usersRoot);
+    } catch {
+      continue;
+    }
+    for (const u of users) {
+      const candidate = path.resolve(
+        path.join(usersRoot, u, 'AppData', 'Roaming', app, 'User'),
+      );
+      if (seen.has(candidate)) {
+        continue;
+      }
+      if (isExistingDirectory(fsImpl, candidate)) {
+        seen.add(candidate);
+        found.push(candidate);
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * Candidate editor `User` directories to probe, in priority order.
+ * Always starts with the primary directory ({@link resolveEditorUserDirectory}).
+ *
+ * On WSL Linux extension hosts we additionally include the corresponding
+ * Windows-side `Cursor` (or `Code`) user dir(s) discovered through the
+ * drvfs mount, because Cursor Desktop persists `state.vscdb` on the Windows
+ * host even when the workspace is opened over Remote-WSL.
+ */
+export function resolveCandidateEditorUserDirectories(
+  variant: EditorVariant,
+  options?: FindWorkspaceStateOptions,
+): string[] {
+  const primary = path.resolve(resolveEditorUserDirectory(variant, options));
+  const list: string[] = [primary];
+  const seen = new Set<string>([primary]);
+  for (const extra of enumerateWindowsHostEditorUserDirectoriesForWsl(
+    variant,
+    options,
+  )) {
+    if (seen.has(extra)) {
+      continue;
+    }
+    seen.add(extra);
+    list.push(extra);
+  }
+  return list;
+}
+
+/** Candidate `workspaceStorage` roots derived from {@link resolveCandidateEditorUserDirectories}. */
+export function resolveCandidateWorkspaceStorageRoots(
+  variant: EditorVariant,
+  options?: FindWorkspaceStateOptions,
+): string[] {
+  return resolveCandidateEditorUserDirectories(variant, options).map((d) =>
+    path.join(d, 'workspaceStorage'),
+  );
+}
+
+/** Candidate global `state.vscdb` paths derived from {@link resolveCandidateEditorUserDirectories}. */
+export function resolveCandidateGlobalStateVscdbPaths(
+  variant: EditorVariant,
+  options?: FindWorkspaceStateOptions,
+): string[] {
+  return resolveCandidateEditorUserDirectories(variant, options).map((d) =>
+    path.join(d, 'globalStorage', 'state.vscdb'),
+  );
+}
+
+/**
+ * First {@link resolveCandidateGlobalStateVscdbPaths} entry that exists as a file.
+ * Returns `undefined` when no candidate exists (callers may fall back to the
+ * primary path so SQLite reports the more familiar "file not found" error).
+ */
+export function pickExistingGlobalStateVscdbPath(
+  variant: EditorVariant,
+  options?: FindWorkspaceStateOptions,
+): string | undefined {
+  const fsImpl = options?.fsImpl ?? fs;
+  for (const candidate of resolveCandidateGlobalStateVscdbPaths(
+    variant,
+    options,
+  )) {
+    try {
+      if (fsImpl.statSync(candidate).isFile()) {
+        return candidate;
+      }
+    } catch {
+      // Missing or unreadable — try the next candidate.
+    }
+  }
+  return undefined;
+}
+
+/**
  * Map a `workspace.json` `folder` URI to a filesystem path when the URI
  * refers to the same path space as `WorkspaceFolder.uri.fsPath` on the
  * extension host (`file://` or `vscode-remote://` with an absolute path).
@@ -270,18 +415,42 @@ export function findWorkspaceStateVscdbUnderStorageRoot(
   return bestPath;
 }
 
-/** Resolve per-workspace `state.vscdb` for a local folder using the default editor `User` path. */
+/**
+ * Resolve per-workspace `state.vscdb` for a local folder. Probes every
+ * candidate root from {@link resolveCandidateWorkspaceStorageRoots} (so a WSL
+ * extension host also sees the Windows-side `Cursor` workspaceStorage) and
+ * returns the newest matching `state.vscdb` by mtime across all roots.
+ */
 export function findWorkspaceStateVscdbForFolder(
   workspaceFolderPath: string,
   variant: EditorVariant,
   options?: FindWorkspaceStateOptions,
 ): string | undefined {
-  const root = resolveWorkspaceStorageRoot(variant, options);
-  return findWorkspaceStateVscdbUnderStorageRoot(
-    workspaceFolderPath,
-    root,
-    options,
-  );
+  const fsImpl = options?.fsImpl ?? fs;
+  let bestPath: string | undefined;
+  let bestMtime = -1;
+  for (const root of resolveCandidateWorkspaceStorageRoots(variant, options)) {
+    const candidate = findWorkspaceStateVscdbUnderStorageRoot(
+      workspaceFolderPath,
+      root,
+      options,
+    );
+    if (!candidate) {
+      continue;
+    }
+    let mtime = 0;
+    try {
+      mtime = fsImpl.statSync(candidate).mtimeMs;
+    } catch {
+      // Race: file vanished between scan and stat. Treat as 0 mtime so a later
+      // candidate (if any) wins the tiebreak.
+    }
+    if (mtime >= bestMtime) {
+      bestMtime = mtime;
+      bestPath = candidate;
+    }
+  }
+  return bestPath;
 }
 
 /**
