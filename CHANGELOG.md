@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/jitrak-dev/cursor-export/compare/v1.1.0...v1.1.1) (2026-05-06)
+
+
+### fix
+
+* **core:** wsl windows-host db paths, cursorDiskKV composer fallback, drvfs wal snapshot ([](https://github.com/jitrak-dev/cursor-export/commit/0a776e04d737fce58df0c7afe13834bf7bcc5f3d))
+
 # [1.1.0](https://github.com/jitrak-dev/cursor-export/compare/v1.0.7...v1.1.0) (2026-05-04)
 
 
