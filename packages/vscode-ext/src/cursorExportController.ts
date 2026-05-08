@@ -129,12 +129,35 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
         sqliteBusyTimeoutMs: DEFAULT_STATE_VSCDB_BUSY_TIMEOUT_MS,
         onDiagnostic: appendDiagnostic,
       });
+      const agentInfo = result.agentTranscripts 
+        ? ` agents=${result.agentTranscripts.copied.length} plans=${result.agentTranscripts.plans.copied.length}`
+        : '';
       output.appendLine(
-        `[${reason}] profile=${result.profileVersion} exported=${result.exported.length} skipped=${result.skipped.length} → ${result.outputDirectory}`,
+        `[${reason}] profile=${result.profileVersion} exported=${result.exported.length} skipped=${result.skipped.length}${agentInfo} → ${result.outputDirectory}`,
       );
       if (result.skipped.length > 0) {
         for (const s of result.skipped) {
           output.appendLine(`  skip ${s.composerId}: ${s.reason}`);
+        }
+      }
+      if (result.agentTranscripts?.copied.length) {
+        for (const a of result.agentTranscripts.copied) {
+          output.appendLine(`  agent ${a.sourceRelativePath} → ${a.destinationRelativePath}`);
+        }
+      }
+      if (result.agentTranscripts?.skipped.length) {
+        for (const s of result.agentTranscripts.skipped) {
+          output.appendLine(`  skip agent ${s.relativePath}: ${s.reason}`);
+        }
+      }
+      if (result.agentTranscripts?.plans.copied.length) {
+        for (const p of result.agentTranscripts.plans.copied) {
+          output.appendLine(`  plan ${p.sourceRelativePath} → ${p.destinationRelativePath}`);
+        }
+      }
+      if (result.agentTranscripts?.plans.skipped.length) {
+        for (const s of result.agentTranscripts.plans.skipped) {
+          output.appendLine(`  skip plan ${s.relativePath}: ${s.reason}`);
         }
       }
       statusItem.tooltip = `Cursor Export: last export (${reason}) at ${new Date().toLocaleTimeString()}\n${result.exported.length} file(s)`;
@@ -162,7 +185,14 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
     disposeWatchState();
     const cfg = readCursorExportConfig();
     if (!cfg.enabled) {
-      statusItem.hide();
+      statusItem.text = '$(circle-outline) cursor-export';
+      statusItem.tooltip = 'Cursor Export: disabled (click for help)\nSet cursorExport.enabled: true in settings to start watching chat storage.';
+      statusItem.command = 'cursorExport.showOutput';
+      statusItem.show();
+      // Show informational message in output about how to enable
+      output.appendLine('[info] Cursor Export is disabled by default for privacy.');
+      output.appendLine('[info] To enable: Set cursorExport.enabled = true in settings (Ctrl+,)');
+      output.appendLine('[info] This will watch state.vscdb and export chats to .cursor/chats/');
       return;
     }
 

@@ -1,6 +1,10 @@
 import * as path from 'node:path';
 
 import {
+  type AgentTranscriptCopyResult,
+  copyAgentTranscripts,
+} from './agentTranscriptCopy';
+import {
   buildUniqueMarkdownStem,
   pickExportEpochMs,
 } from './chatExportFilename';
@@ -73,6 +77,7 @@ export interface ChatExportResult {
   skipped: SkippedChatExport[];
   outputDirectory: string;
   indexRelativePath: string;
+  agentTranscripts?: AgentTranscriptCopyResult;
 }
 
 type OneExportResult =
@@ -237,11 +242,19 @@ export function exportWorkspaceChats(
   const indexAbs = path.join(outDir, 'index.json');
   mergeAndWriteChatIndex(indexAbs, indexEntries);
 
+  // Copy agent transcripts if available
+  const agentTranscripts = copyAgentTranscripts({
+    workspaceFolderPath: options.workspaceFolderPath,
+    outputDirectory: outDir,
+    onDiagnostic: options.onDiagnostic,
+  });
+
   return {
     profileVersion: profile.version,
     exported,
     skipped,
     outputDirectory: outDir,
     indexRelativePath: 'index.json',
+    agentTranscripts,
   };
 }

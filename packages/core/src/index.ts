@@ -1,4 +1,11 @@
 export {
+  type AgentTranscriptCopyOptions,
+  type AgentTranscriptCopyResult,
+  copyAgentTranscripts,
+  type CopiedAgentFile,
+  type CopiedPlanFile,
+} from './agentTranscriptCopy';
+export {
   type ChatExporterOptions,
   type ChatExportResult,
   type ExportedChatFile,
