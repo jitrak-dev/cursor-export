@@ -53,15 +53,21 @@ function resolveAgentTranscriptsDirectory(
   if (!home) {
     return undefined;
   }
-  
+
   // Create workspace slug from folder path - match Cursor's logic exactly
   // Cursor converts absolute paths like /home/user/project -> home-user-project
   const normalizedPath = path.resolve(workspaceFolderPath);
   const workspaceSlug = normalizedPath
-    .replace(/^[/\\]/, '') // Remove leading / or \ 
+    .replace(/^[/\\]/, '') // Remove leading / or \
     .replace(/[/\\]/g, '-'); // Replace path separators with hyphens
-  
-  return path.join(home, '.cursor', 'projects', workspaceSlug, 'agent-transcripts');
+
+  return path.join(
+    home,
+    '.cursor',
+    'projects',
+    workspaceSlug,
+    'agent-transcripts',
+  );
 }
 
 /**
@@ -79,7 +85,7 @@ function resolvePlansDirectory(): string | undefined {
   if (!home) {
     return undefined;
   }
-  
+
   return path.join(home, '.cursor', 'plans');
 }
 
@@ -90,10 +96,17 @@ function resolvePlansDirectory(): string | undefined {
 function copyPlanFiles(
   outputDirectory: string,
   onDiagnostic?: DiagnosticFn,
-): { copied: CopiedPlanFile[]; skipped: Array<{ relativePath: string; reason: string }> } {
+): {
+  copied: CopiedPlanFile[];
+  skipped: Array<{ relativePath: string; reason: string }>;
+} {
   const plansDir = resolvePlansDirectory();
   if (!plansDir) {
-    report(onDiagnostic, 'warn', 'Cannot resolve plans directory (HOME env var missing)');
+    report(
+      onDiagnostic,
+      'warn',
+      'Cannot resolve plans directory (HOME env var missing)',
+    );
     return { copied: [], skipped: [] };
   }
 
@@ -112,7 +125,7 @@ function copyPlanFiles(
 
     // Scan for .plan.md files
     const entries = fs.readdirSync(plansDir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith('.plan.md')) {
         continue;
@@ -122,33 +135,35 @@ function copyPlanFiles(
       const destPath = path.join(outputPlansDir, entry.name);
       const sourceRelativePath = entry.name;
       const destRelativePath = path.join('plans', entry.name);
-      
+
       try {
         const stat = fs.statSync(sourcePath);
-        
+
         // Copy file with preservation of timestamps
         fs.copyFileSync(sourcePath, destPath);
         fs.utimesSync(destPath, stat.atime, stat.mtime);
-        
+
         copied.push({
           sourceRelativePath: sourceRelativePath,
           destinationRelativePath: destRelativePath,
-          size: stat.size
+          size: stat.size,
         });
-        
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         skipped.push({
           relativePath: sourceRelativePath,
-          reason: `Copy failed: ${msg}`
+          reason: `Copy failed: ${msg}`,
         });
       }
     }
 
     if (copied.length > 0) {
-      report(onDiagnostic, 'info', `Copied ${copied.length} plan file(s) to ${outputPlansDir}`);
+      report(
+        onDiagnostic,
+        'info',
+        `Copied ${copied.length} plan file(s) to ${outputPlansDir}`,
+      );
     }
-
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     report(onDiagnostic, 'warn', `Failed to copy plan files: ${msg}`);
@@ -165,25 +180,36 @@ export function copyAgentTranscripts(
   options: AgentTranscriptCopyOptions,
 ): AgentTranscriptCopyResult {
   const { workspaceFolderPath, outputDirectory, onDiagnostic } = options;
-  
-  const agentTranscriptsDir = resolveAgentTranscriptsDirectory(workspaceFolderPath);
+
+  const agentTranscriptsDir =
+    resolveAgentTranscriptsDirectory(workspaceFolderPath);
   const copied: CopiedAgentFile[] = [];
   const skipped: Array<{ relativePath: string; reason: string }> = [];
-  
+
   if (!agentTranscriptsDir) {
-    report(onDiagnostic, 'warn', 'Cannot resolve agent transcripts directory (HOME env var missing)');
+    report(
+      onDiagnostic,
+      'warn',
+      'Cannot resolve agent transcripts directory (HOME env var missing)',
+    );
   } else if (!fs.existsSync(agentTranscriptsDir)) {
-    report(onDiagnostic, 'info', `No agent transcripts directory found at: ${agentTranscriptsDir}`);
+    report(
+      onDiagnostic,
+      'info',
+      `No agent transcripts directory found at: ${agentTranscriptsDir}`,
+    );
   } else {
     const outputAgentDir = path.join(outputDirectory, 'agent-transcripts');
-    
+
     try {
       // Ensure output directory exists
       fs.mkdirSync(outputAgentDir, { recursive: true });
 
       // Scan for transcript directories (UUID-named folders)
-      const entries = fs.readdirSync(agentTranscriptsDir, { withFileTypes: true });
-      
+      const entries = fs.readdirSync(agentTranscriptsDir, {
+        withFileTypes: true,
+      });
+
       for (const entry of entries) {
         if (!entry.isDirectory()) {
           continue;
@@ -191,59 +217,68 @@ export function copyAgentTranscripts(
 
         const transcriptDir = path.join(agentTranscriptsDir, entry.name);
         const outputTranscriptDir = path.join(outputAgentDir, entry.name);
-        
+
         try {
           // Create output subdirectory
           fs.mkdirSync(outputTranscriptDir, { recursive: true });
-          
+
           // Copy all files from this transcript directory
           const files = fs.readdirSync(transcriptDir);
-          
+
           for (const file of files) {
             const sourcePath = path.join(transcriptDir, file);
             const destPath = path.join(outputTranscriptDir, file);
             const sourceRelativePath = path.join(entry.name, file);
-            const destRelativePath = path.join('agent-transcripts', entry.name, file);
-            
+            const destRelativePath = path.join(
+              'agent-transcripts',
+              entry.name,
+              file,
+            );
+
             try {
               const stat = fs.statSync(sourcePath);
               if (!stat.isFile()) {
                 skipped.push({
                   relativePath: sourceRelativePath,
-                  reason: 'Not a regular file'
+                  reason: 'Not a regular file',
                 });
                 continue;
               }
-              
+
               // Copy file with preservation of timestamps
               fs.copyFileSync(sourcePath, destPath);
               fs.utimesSync(destPath, stat.atime, stat.mtime);
-              
+
               copied.push({
                 sourceRelativePath: sourceRelativePath,
                 destinationRelativePath: destRelativePath,
-                size: stat.size
+                size: stat.size,
               });
-              
             } catch (err) {
               const msg = err instanceof Error ? err.message : String(err);
               skipped.push({
                 relativePath: sourceRelativePath,
-                reason: `Copy failed: ${msg}`
+                reason: `Copy failed: ${msg}`,
               });
             }
           }
-          
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          report(onDiagnostic, 'warn', `Failed to process transcript directory ${entry.name}: ${msg}`);
+          report(
+            onDiagnostic,
+            'warn',
+            `Failed to process transcript directory ${entry.name}: ${msg}`,
+          );
         }
       }
 
       if (copied.length > 0) {
-        report(onDiagnostic, 'info', `Copied ${copied.length} agent transcript file(s) to ${outputAgentDir}`);
+        report(
+          onDiagnostic,
+          'info',
+          `Copied ${copied.length} agent transcript file(s) to ${outputAgentDir}`,
+        );
       }
-
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       report(onDiagnostic, 'warn', `Failed to copy agent transcripts: ${msg}`);
