@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/jitrak-dev/cursor-export/compare/v1.1.1...v1.2.0) (2026-05-08)
+
+
+### feat
+
+* copy agent transcripts and plan files to output directory ([](https://github.com/jitrak-dev/cursor-export/commit/4284a04c071ee2d26d258f5219a1c16337f21d26))
+
+
+### fix
+
+* **lint:** sort imports and exports in agentTranscriptCopy files ([](https://github.com/jitrak-dev/cursor-export/commit/125bb0263defa2d6300217241d45519d4120b76b))
+
 ## [1.1.1](https://github.com/jitrak-dev/cursor-export/compare/v1.1.0...v1.1.1) (2026-05-06)
 
 
