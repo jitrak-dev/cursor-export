@@ -4,7 +4,7 @@
   "icon": "icon.png",
   "version": "1.2.0",
   "publisher": "jitrak-dev",
-  "description": "Export Cursor chats to .cursor/chats (workspace)",
+  "description": "Export Cursor composer chats and agent transcripts to Markdown files in your workspace (.cursor/chats)",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,13 +21,17 @@
     "export",
     "markdown",
     "composer",
+    "transcript",
+    "agent",
+    "backup",
     "cursor-export"
   ],
   "engines": {
     "vscode": "^1.95.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Formatters"
   ],
   "activationEvents": [
     "onStartupFinished"

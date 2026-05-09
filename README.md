@@ -1,8 +1,18 @@
 # cursor-export
 
-Monorepo for **Cursor Export** (`cursor-export`): export Cursor (and compatible VS Code) composer chats from read-only `state.vscdb` storage into Markdown under your workspace (default `.cursor/chats/`), plus a machine-readable `index.json`.
+Monorepo for **Cursor Export** (`cursor-export`): export Cursor composer chats and agent transcripts from read-only `state.vscdb` storage into Markdown under your workspace (default `.cursor/chats/`), plus a machine-readable `index.json`.
 
 Repository: [github.com/jitrak-dev/cursor-export](https://github.com/jitrak-dev/cursor-export)
+
+## Installation
+
+Install from [Open VSX Registry](https://open-vsx.org/extension/jitrak-dev/cursor-export):
+
+1. **In Cursor/VS Code**: Go to Extensions → Search for "cursor-export" by jitrak-dev
+2. **Command line**: `cursor --install-extension jitrak-dev.cursor-export`
+3. **Manual VSIX**: Download from [releases](https://github.com/jitrak-dev/cursor-export/releases) and install via Extensions → ⋯ → Install from VSIX
+
+**First-time setup**: Enable the extension in your workspace settings (`Ctrl/Cmd + ,` → search "cursor export" → check "Cursor Export: Enabled").
 
 ## Privacy and opt-in
 
@@ -118,7 +128,8 @@ If your default branch is not `main`, update `branches` in `.releaserc.cjs` and 
 
 ## Output format
 
-- **Markdown** files: required YAML front matter keys `title`, `model`, `updated` (ISO-8601), then the thread body.
+- **Composer chat Markdown** files: required YAML front matter keys `title`, `model`, `updated` (ISO-8601), then the thread body.
+- **Agent transcript** files: copied from `~/.cursor/agent-transcripts/*.jsonl` to maintain conversation history.
 - **`index.json`**: maps stable composer id → relative path, title, updated.
 
 Default output directory: `<workspace>/.cursor/chats/`. Override with setting `cursorExport.outputDirectory`.
