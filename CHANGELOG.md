@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/jitrak-dev/cursor-export/compare/v1.2.0...v1.2.1) (2026-05-09)
+
+
+### fix
+
+* remove plan file syncing to avoid cross-repo conflicts ([](https://github.com/jitrak-dev/cursor-export/commit/02b1bff162b63c3517e5aa8457e7f9cf0905907f))
+
 # [1.2.0](https://github.com/jitrak-dev/cursor-export/compare/v1.1.1...v1.2.0) (2026-05-08)
 
 
