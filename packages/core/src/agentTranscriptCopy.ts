@@ -15,19 +15,9 @@ export interface CopiedAgentFile {
   size: number;
 }
 
-export interface CopiedPlanFile {
-  sourceRelativePath: string;
-  destinationRelativePath: string;
-  size: number;
-}
-
 export interface AgentTranscriptCopyResult {
   copied: CopiedAgentFile[];
   skipped: Array<{ relativePath: string; reason: string }>;
-  plans: {
-    copied: CopiedPlanFile[];
-    skipped: Array<{ relativePath: string; reason: string }>;
-  };
 }
 
 function noopDiagnostic(): void {
@@ -78,103 +68,8 @@ function getHomeDirectory(): string | undefined {
 }
 
 /**
- * Resolve the plans directory (~/.cursor/plans/)
- */
-function resolvePlansDirectory(): string | undefined {
-  const home = getHomeDirectory();
-  if (!home) {
-    return undefined;
-  }
-
-  return path.join(home, '.cursor', 'plans');
-}
-
-/**
- * Copy plan files (.plan.md) to the workspace output directory.
- * Creates a plans/ subdirectory in the output directory.
- */
-function copyPlanFiles(
-  outputDirectory: string,
-  onDiagnostic?: DiagnosticFn,
-): {
-  copied: CopiedPlanFile[];
-  skipped: Array<{ relativePath: string; reason: string }>;
-} {
-  const plansDir = resolvePlansDirectory();
-  if (!plansDir) {
-    report(
-      onDiagnostic,
-      'warn',
-      'Cannot resolve plans directory (HOME env var missing)',
-    );
-    return { copied: [], skipped: [] };
-  }
-
-  if (!fs.existsSync(plansDir)) {
-    report(onDiagnostic, 'info', `No plans directory found at: ${plansDir}`);
-    return { copied: [], skipped: [] };
-  }
-
-  const outputPlansDir = path.join(outputDirectory, 'plans');
-  const copied: CopiedPlanFile[] = [];
-  const skipped: Array<{ relativePath: string; reason: string }> = [];
-
-  try {
-    // Ensure output directory exists
-    fs.mkdirSync(outputPlansDir, { recursive: true });
-
-    // Scan for .plan.md files
-    const entries = fs.readdirSync(plansDir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (!entry.isFile() || !entry.name.endsWith('.plan.md')) {
-        continue;
-      }
-
-      const sourcePath = path.join(plansDir, entry.name);
-      const destPath = path.join(outputPlansDir, entry.name);
-      const sourceRelativePath = entry.name;
-      const destRelativePath = path.join('plans', entry.name);
-
-      try {
-        const stat = fs.statSync(sourcePath);
-
-        // Copy file with preservation of timestamps
-        fs.copyFileSync(sourcePath, destPath);
-        fs.utimesSync(destPath, stat.atime, stat.mtime);
-
-        copied.push({
-          sourceRelativePath: sourceRelativePath,
-          destinationRelativePath: destRelativePath,
-          size: stat.size,
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        skipped.push({
-          relativePath: sourceRelativePath,
-          reason: `Copy failed: ${msg}`,
-        });
-      }
-    }
-
-    if (copied.length > 0) {
-      report(
-        onDiagnostic,
-        'info',
-        `Copied ${copied.length} plan file(s) to ${outputPlansDir}`,
-      );
-    }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    report(onDiagnostic, 'warn', `Failed to copy plan files: ${msg}`);
-  }
-
-  return { copied, skipped };
-}
-
-/**
- * Copy agent transcript files (.jsonl) and plan files (.plan.md) to the workspace output directory.
- * Creates agent-transcripts/ and plans/ subdirectories in the output directory.
+ * Copy agent transcript files (.jsonl) to the workspace output directory.
+ * Creates agent-transcripts/ subdirectory in the output directory.
  */
 export function copyAgentTranscripts(
   options: AgentTranscriptCopyOptions,
@@ -285,8 +180,5 @@ export function copyAgentTranscripts(
     }
   }
 
-  // Copy plan files
-  const plans = copyPlanFiles(outputDirectory, onDiagnostic);
-
-  return { copied, skipped, plans };
+  return { copied, skipped };
 }

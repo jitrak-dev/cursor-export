@@ -11,7 +11,6 @@ describe('copyAgentTranscripts', () => {
   let workspaceDir: string;
   let outputDir: string;
   let agentTranscriptsDir: string;
-  let plansDir: string;
   let originalHome: string | undefined;
 
   beforeEach(() => {
@@ -37,12 +36,10 @@ describe('copyAgentTranscripts', () => {
       workspaceSlug,
       'agent-transcripts',
     );
-    plansDir = path.join(tmpDir, '.cursor', 'plans');
 
     fs.mkdirSync(workspaceDir, { recursive: true });
     fs.mkdirSync(outputDir, { recursive: true });
     fs.mkdirSync(agentTranscriptsDir, { recursive: true });
-    fs.mkdirSync(plansDir, { recursive: true });
   });
 
   afterEach(() => {
@@ -80,8 +77,6 @@ describe('copyAgentTranscripts', () => {
       `agent-transcripts/${transcriptId}/${transcriptId}.jsonl`,
     );
     expect(result.skipped).toHaveLength(0);
-    expect(result.plans.copied).toHaveLength(0);
-    expect(result.plans.skipped).toHaveLength(0);
 
     // Verify file was actually copied
     const copiedFile = path.join(
@@ -105,8 +100,6 @@ describe('copyAgentTranscripts', () => {
 
     expect(result.copied).toHaveLength(0);
     expect(result.skipped).toHaveLength(0);
-    expect(result.plans.copied).toHaveLength(0);
-    expect(result.plans.skipped).toHaveLength(0);
   });
 
   it('should skip non-regular files', () => {
@@ -126,35 +119,5 @@ describe('copyAgentTranscripts', () => {
     expect(result.copied).toHaveLength(0);
     expect(result.skipped).toHaveLength(1);
     expect(result.skipped[0].reason).toBe('Not a regular file');
-    expect(result.plans.copied).toHaveLength(0);
-    expect(result.plans.skipped).toHaveLength(0);
-  });
-
-  it('should copy plan files when they exist', () => {
-    // Create mock plan file
-    const planContent = '# Test Plan\n\nThis is a test plan.';
-    const planFile = path.join(plansDir, 'test-plan-123.plan.md');
-    fs.writeFileSync(planFile, planContent);
-
-    // Run the copy function
-    const result = copyAgentTranscripts({
-      workspaceFolderPath: workspaceDir,
-      outputDirectory: outputDir,
-    });
-
-    // Verify plan file was copied
-    expect(result.plans.copied).toHaveLength(1);
-    expect(result.plans.copied[0].sourceRelativePath).toBe(
-      'test-plan-123.plan.md',
-    );
-    expect(result.plans.copied[0].destinationRelativePath).toBe(
-      'plans/test-plan-123.plan.md',
-    );
-    expect(result.plans.skipped).toHaveLength(0);
-
-    // Verify file was actually copied
-    const copiedFile = path.join(outputDir, 'plans', 'test-plan-123.plan.md');
-    expect(fs.existsSync(copiedFile)).toBe(true);
-    expect(fs.readFileSync(copiedFile, 'utf8')).toBe(planContent);
   });
 });

@@ -2,7 +2,6 @@ export {
   type AgentTranscriptCopyOptions,
   type AgentTranscriptCopyResult,
   type CopiedAgentFile,
-  type CopiedPlanFile,
   copyAgentTranscripts,
 } from './agentTranscriptCopy';
 export {

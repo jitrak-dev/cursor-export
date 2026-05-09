@@ -130,7 +130,7 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
         onDiagnostic: appendDiagnostic,
       });
       const agentInfo = result.agentTranscripts
-        ? ` agents=${result.agentTranscripts.copied.length} plans=${result.agentTranscripts.plans.copied.length}`
+        ? ` agents=${result.agentTranscripts.copied.length}`
         : '';
       output.appendLine(
         `[${reason}] profile=${result.profileVersion} exported=${result.exported.length} skipped=${result.skipped.length}${agentInfo} → ${result.outputDirectory}`,
@@ -150,18 +150,6 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
       if (result.agentTranscripts?.skipped.length) {
         for (const s of result.agentTranscripts.skipped) {
           output.appendLine(`  skip agent ${s.relativePath}: ${s.reason}`);
-        }
-      }
-      if (result.agentTranscripts?.plans.copied.length) {
-        for (const p of result.agentTranscripts.plans.copied) {
-          output.appendLine(
-            `  plan ${p.sourceRelativePath} → ${p.destinationRelativePath}`,
-          );
-        }
-      }
-      if (result.agentTranscripts?.plans.skipped.length) {
-        for (const s of result.agentTranscripts.plans.skipped) {
-          output.appendLine(`  skip plan ${s.relativePath}: ${s.reason}`);
         }
       }
       statusItem.tooltip = `Cursor Export: last export (${reason}) at ${new Date().toLocaleTimeString()}\n${result.exported.length} file(s)`;
