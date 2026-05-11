@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/jitrak-dev/cursor-export/compare/v1.2.2...v1.3.0) (2026-05-11)
+
+
+### feat
+
+* skip unchanged exports and auto-exclude deleted chats ([](https://github.com/jitrak-dev/cursor-export/commit/15a4bc768d83b776af91f69f7022b7d65d1bcd62))
+
 ## [1.2.2](https://github.com/jitrak-dev/cursor-export/compare/v1.2.1...v1.2.2) (2026-05-11)
 
 
