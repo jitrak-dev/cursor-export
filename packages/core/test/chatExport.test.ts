@@ -38,6 +38,35 @@ function parseYamlFrontMatter(md: string): Record<string, string> {
 }
 
 describe('exportWorkspaceChats (Cursor 3 fixture)', () => {
+  it('returns structured skip when state.vscdb files cannot be opened (no throw)', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+    const missingGlobal = path.join(tmp, 'nope', 'global', 'state.vscdb');
+    const missingWs = path.join(tmp, 'nope', 'ws', 'state.vscdb');
+
+    const result = exportWorkspaceChats({
+      workspaceFolderPath: path.join(tmp, 'workspace'),
+      editorVariant: 'cursor',
+      globalStateDbPath: missingGlobal,
+      workspaceStateDbPath: missingWs,
+      outputDirectory: outDir,
+    });
+
+    expect(result.exported).toHaveLength(0);
+    expect(result.skipped).toHaveLength(1);
+    expect(result.skipped[0]?.composerId).toBe('*');
+    expect(result.skipped[0]?.reason).toContain(
+      'Cannot read one or both state.vscdb',
+    );
+    expect(result.skipped[0]?.reason).toContain(missingGlobal);
+    expect(result.skipped[0]?.reason).toContain(missingWs);
+    expect(result.profileVersion).toBe('unknown');
+    expect(fs.existsSync(path.join(outDir, 'index.json'))).toBe(false);
+  });
+
   it('writes markdown with required title, model, and updated front matter', () => {
     const tmp = fs.mkdtempSync(
       path.join(os.tmpdir(), 'cursor-export-core-test-'),

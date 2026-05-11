@@ -1,7 +1,8 @@
 /**
  * Rebuild better-sqlite3 for the Electron ABI used by the VS Code build we run
- * in extension E2E tests (see e2e-host-versions.json). Required because the
- * extension host loads @cursor-export/core, which loads better-sqlite3 at startup.
+ * in extension E2E tests (see e2e-host-versions.json field `electron`).
+ * VSIX packaging uses `electronVsix` from the same file via package-vsix.mjs.
+ * Required because the extension host loads @cursor-export/core, which loads better-sqlite3 at startup.
  */
 import { execSync } from 'node:child_process';
 import { createRequire } from 'node:module';

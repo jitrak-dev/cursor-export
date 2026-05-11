@@ -39,6 +39,8 @@ jobs:
 
       - name: Package VSIX (${{ matrix.target }})
         shell: bash
+        env:
+          ELECTRON_EXTENSION_HOST_VERSION: ${{ vars.ELECTRON_EXTENSION_HOST_VERSION }}
         run: pnpm extension:package -- --target ${{ matrix.target }}
 
       - name: Publish to Open VSX (${{ matrix.target }})

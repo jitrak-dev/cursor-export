@@ -30,6 +30,8 @@ export interface StateDbSurfaceReport {
   readable: boolean;
   hasItemTable: boolean;
   hasCursorDiskKV: boolean;
+  /** Set when `readable` is false: message from opening the DB (native/SQLite I/O). */
+  openError?: string;
 }
 
 export interface CursorStorageSchemaProfile {
@@ -89,8 +91,9 @@ function inspectSurface(dbFilePath: string): StateDbSurfaceReport {
     base.readable = true;
     base.hasItemTable = hasItemTable(db);
     base.hasCursorDiskKV = hasCursorDiskKvTable(db);
-  } catch {
+  } catch (e) {
     base.readable = false;
+    base.openError = e instanceof Error ? e.message : String(e);
   } finally {
     if (db) {
       db.close();
@@ -154,10 +157,14 @@ export function detectCursorStorageSchema(
   const workspaceSurface = inspectSurface(workspaceDbPath);
 
   if (!globalSurface.readable) {
-    notes.push(`Global DB not readable at: ${globalDbPath}`);
+    const hint = globalSurface.openError ? ` (${globalSurface.openError})` : '';
+    notes.push(`Global DB not readable at: ${globalDbPath}${hint}`);
   }
   if (!workspaceSurface.readable) {
-    notes.push(`Workspace DB not readable at: ${workspaceDbPath}`);
+    const hint = workspaceSurface.openError
+      ? ` (${workspaceSurface.openError})`
+      : '';
+    notes.push(`Workspace DB not readable at: ${workspaceDbPath}${hint}`);
   }
 
   let hasGlobalComposerHeaders = false;

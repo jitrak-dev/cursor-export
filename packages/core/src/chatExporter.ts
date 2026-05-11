@@ -22,7 +22,7 @@ import {
 } from './chatExportMarkdown';
 import {
   type ComposerSummary,
-  detectCursorStorageSchema,
+  type CursorStorageSchemaProfile,
   type DiagnosticFn,
   listComposersForWorkspace,
 } from './cursorStorageSchema';
@@ -69,6 +69,27 @@ export interface ExportedChatFile {
 export interface SkippedChatExport {
   composerId: string;
   reason: string;
+}
+
+function skipReasonForUnreadableStateDbs(
+  profile: CursorStorageSchemaProfile,
+): string {
+  const parts: string[] = [
+    'Cannot read one or both state.vscdb files (export needs global + workspace).',
+  ];
+  if (!profile.global.readable) {
+    const err = profile.global.openError
+      ? ` — ${profile.global.openError}`
+      : '';
+    parts.push(`Global: ${profile.global.path}${err}`);
+  }
+  if (!profile.workspace.readable) {
+    const err = profile.workspace.openError
+      ? ` — ${profile.workspace.openError}`
+      : '';
+    parts.push(`Workspace: ${profile.workspace.path}${err}`);
+  }
+  return parts.join(' ');
 }
 
 export interface ChatExportResult {
@@ -202,8 +223,22 @@ export function exportWorkspaceChats(
     onDiagnostic: options.onDiagnostic,
   };
 
-  const profile = detectCursorStorageSchema(listOpts);
-  const { composers } = listComposersForWorkspace(listOpts);
+  const { profile, composers } = listComposersForWorkspace(listOpts);
+
+  if (!profile.global.readable || !profile.workspace.readable) {
+    return {
+      profileVersion: profile.version,
+      exported: [],
+      skipped: [
+        {
+          composerId: '*',
+          reason: skipReasonForUnreadableStateDbs(profile),
+        },
+      ],
+      outputDirectory: outDir,
+      indexRelativePath: 'index.json',
+    };
+  }
 
   const gdb = openStateVscdbReadonly(globalPath, { busyTimeoutMs: busyMs });
   const wdb = openStateVscdbReadonly(workspaceDbPath, {

@@ -1,4 +1,5 @@
 {
   "vscode": "1.95.3",
-  "electron": "32.2.1"
+  "electron": "32.2.1",
+  "electronVsix": "39.8.8"
 }

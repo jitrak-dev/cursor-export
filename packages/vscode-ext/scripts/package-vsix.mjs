@@ -9,8 +9,8 @@
  *   node ./scripts/package-vsix.mjs --target darwin-arm64
  *
  * Env:
- *   ELECTRON_EXTENSION_HOST_VERSION — Electron semver for `npm rebuild better-sqlite3`
- *     (default tracks microsoft/vscode devDependency `electron`, bump when load errors mention NODE_MODULE_VERSION).
+ *   ELECTRON_EXTENSION_HOST_VERSION — Optional override for `npm rebuild better-sqlite3`
+ *     (defaults to `electronVsix` in e2e-host-versions.json; CI can set the repo variable of the same name).
  *
  * Without `--target`, infers from `process.platform` / `process.arch` (see inferVsceTarget).
  * Output: `packages/vscode-ext/cursor-export-<version>-<target>.vsix`
@@ -26,13 +26,33 @@ const repoRoot = path.resolve(extRoot, '../..');
 const coreRoot = path.resolve(extRoot, '../core');
 const staging = path.join(extRoot, '.vsix-staging');
 
+const pinsPath = path.join(__dirname, 'e2e-host-versions.json');
+/** @type {{ vscode?: string; electron?: string; electronVsix?: string }} */
+const hostPins = JSON.parse(fs.readFileSync(pinsPath, 'utf8'));
+
 /**
- * Electron version bundled with recent VS Code / Cursor extension host
- * (NODE_MODULE_VERSION / native ABI). Align with upstream:
- * https://github.com/microsoft/vscode/blob/main/package.json → devDependencies.electron
- * Override for local/CI: ELECTRON_EXTENSION_HOST_VERSION=39.x.y
+ * Electron ABI for the **shipped VSIX** (Cursor’s extension host often differs from
+ * the stock VS Code pin used in E2E). Order: env → electronVsix → electron → fallback.
  */
-const DEFAULT_ELECTRON_EXTENSION_HOST = '39.8.8';
+function resolveElectronVersionForVsixPackaging() {
+  const env = process.env.ELECTRON_EXTENSION_HOST_VERSION?.trim();
+  if (env) {
+    return env;
+  }
+  if (
+    typeof hostPins.electronVsix === 'string' &&
+    hostPins.electronVsix.trim().length > 0
+  ) {
+    return hostPins.electronVsix.trim();
+  }
+  if (
+    typeof hostPins.electron === 'string' &&
+    hostPins.electron.trim().length > 0
+  ) {
+    return hostPins.electron.trim();
+  }
+  return '39.8.8';
+}
 
 /** @type {readonly string[]} */
 const VALID_VSCE_TARGETS = [
@@ -61,7 +81,7 @@ Builds a platform-specific VSIX (OS/arch + Electron ABI for better-sqlite3).
            If omitted, inferred from this machine (process.platform / process.arch).
 
 Env:
-  ELECTRON_EXTENSION_HOST_VERSION   Electron semver for native rebuild (default ${DEFAULT_ELECTRON_EXTENSION_HOST})
+  ELECTRON_EXTENSION_HOST_VERSION   Electron semver for native rebuild (default ${resolveElectronVersionForVsixPackaging()} without env set)
 
 Examples:
   node ./scripts/package-vsix.mjs --target linux-x64
@@ -120,9 +140,7 @@ function assertValidTarget(target) {
  * Rebuild the native addon so `better_sqlite3.node` matches `process.versions.modules` in Cursor.
  */
 function rebuildBetterSqliteForElectron(stagingDir) {
-  const electronVer =
-    process.env.ELECTRON_EXTENSION_HOST_VERSION?.trim() ||
-    DEFAULT_ELECTRON_EXTENSION_HOST;
+  const electronVer = resolveElectronVersionForVsixPackaging();
   const mod = path.join(stagingDir, 'node_modules', 'better-sqlite3');
   if (!fs.existsSync(mod)) {
     console.warn(
