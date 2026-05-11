@@ -21,7 +21,7 @@ function insertJsonValue(
   value: unknown,
 ): void {
   const payload = Buffer.from(JSON.stringify(value), 'utf8');
-  db.prepare(`INSERT INTO ${table} (key, value) VALUES (?, ?)`).run(
+  db.prepare(`INSERT OR REPLACE INTO ${table} (key, value) VALUES (?, ?)`).run(
     key,
     payload,
   );
@@ -38,6 +38,9 @@ export interface MinimalCursor3FixturePaths {
 
 export interface WriteMinimalCursor3FixtureOptions {
   includeModel?: boolean;
+  /** Override composer timestamps in headers + composerData (epoch ms). */
+  composerCreatedAt?: number;
+  composerLastUpdatedAt?: number;
   /**
    * Which `state.vscdb` holds the `composerData:<composerId>` row. Recent
    * Cursor builds may persist per-composer blobs in workspace `state.vscdb`
@@ -63,6 +66,9 @@ export function writeMinimalCursor3Fixture(
   options?: WriteMinimalCursor3FixtureOptions,
 ): MinimalCursor3FixturePaths {
   const includeModel = options?.includeModel ?? true;
+  const composerCreatedAt = options?.composerCreatedAt ?? 1_700_000_000_000;
+  const composerLastUpdatedAt =
+    options?.composerLastUpdatedAt ?? 1_700_000_060_000;
   const composerDataItemTableDb = options?.composerDataItemTableDb ?? 'global';
   const composerDataTable = options?.composerDataTable ?? 'ItemTable';
   const messageStorage = options?.messageStorage ?? 'inline';
@@ -89,8 +95,8 @@ export function writeMinimalCursor3Fixture(
         {
           composerId: FIXTURE_COMPOSER_ID,
           name: 'Fixture Alpha Chat',
-          createdAt: 1_700_000_000_000,
-          lastUpdatedAt: 1_700_000_060_000,
+          createdAt: composerCreatedAt,
+          lastUpdatedAt: composerLastUpdatedAt,
           workspaceIdentifier: { id: WORKSPACE_STORAGE_DIR },
         },
       ],
@@ -104,8 +110,8 @@ export function writeMinimalCursor3Fixture(
 
     const composerData: Record<string, unknown> = {
       name: 'Fixture Alpha Chat',
-      createdAt: 1_700_000_000_000,
-      lastUpdatedAt: 1_700_000_060_000,
+      createdAt: composerCreatedAt,
+      lastUpdatedAt: composerLastUpdatedAt,
       fullConversationHeadersOnly: [
         { bubbleId: 'b1', type: 1 },
         { bubbleId: 'b2', type: 2 },

@@ -6,6 +6,10 @@ import { describe, expect, it } from 'vitest';
 
 import { exportWorkspaceChats } from '../src/chatExporter';
 import {
+  EXCLUDED_COMPOSERS_FILENAME,
+  writeExcludedComposerIds,
+} from '../src/chatExportExcluded';
+import {
   FIXTURE_COMPOSER_ID,
   writeMinimalCursor3Fixture,
 } from './cursor3Fixture';
@@ -254,5 +258,133 @@ describe('exportWorkspaceChats (Cursor 3 fixture)', () => {
       'utf8',
     );
     expect(md).toContain('Hello from fixture assistant');
+  });
+
+  it('skipUnchanged true avoids rewriting Markdown when index matches DB metadata', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
+      includeModel: true,
+    });
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    const base = {
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor' as const,
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    };
+
+    const first = exportWorkspaceChats(base);
+    expect(first.exported).toHaveLength(1);
+    expect(first.unchanged).toHaveLength(0);
+
+    const rel = first.exported[0]?.relativePath ?? '';
+    const absMd = path.join(outDir, rel);
+    const mtimeBefore = fs.statSync(absMd).mtimeMs;
+
+    const second = exportWorkspaceChats({ ...base, skipUnchanged: true });
+    expect(second.exported).toHaveLength(0);
+    expect(second.unchanged).toHaveLength(1);
+    expect(second.unchanged[0]?.relativePath).toBe(rel);
+    expect(fs.statSync(absMd).mtimeMs).toBe(mtimeBefore);
+  });
+
+  it('skipUnchanged true still writes when DB updated timestamp changes', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const dbRoot = path.join(tmp, 'db');
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    let fixture = writeMinimalCursor3Fixture(dbRoot, {
+      includeModel: true,
+      composerLastUpdatedAt: 1_700_000_060_000,
+    });
+
+    const base = {
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor' as const,
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    };
+
+    exportWorkspaceChats(base);
+
+    fixture = writeMinimalCursor3Fixture(dbRoot, {
+      includeModel: true,
+      composerLastUpdatedAt: 1_900_000_000_000,
+    });
+
+    const third = exportWorkspaceChats({
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor',
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+      skipUnchanged: true,
+    });
+
+    expect(third.exported).toHaveLength(1);
+    expect(third.unchanged).toHaveLength(0);
+    const md = fs.readFileSync(
+      path.join(outDir, third.exported[0]?.relativePath ?? ''),
+      'utf8',
+    );
+    const fm = parseYamlFrontMatter(md);
+    expect(fm['updated']).toBe(new Date(1_900_000_000_000).toISOString());
+  });
+
+  it('missing Markdown auto-excludes composer until exclude list cleared', () => {
+    const tmp = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'cursor-export-core-test-'),
+    );
+    const fixture = writeMinimalCursor3Fixture(path.join(tmp, 'db'), {
+      includeModel: true,
+    });
+    const outDir = path.join(tmp, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    const base = {
+      workspaceFolderPath: fixture.workspaceFolderPath,
+      editorVariant: 'cursor' as const,
+      globalStateDbPath: fixture.globalStateVscdbPath,
+      workspaceStateDbPath: fixture.workspaceStateVscdbPath,
+      workspaceStorageId: fixture.workspaceStorageId,
+      outputDirectory: outDir,
+    };
+
+    const first = exportWorkspaceChats(base);
+    expect(first.exported).toHaveLength(1);
+
+    const rel = first.exported[0]?.relativePath ?? '';
+    fs.unlinkSync(path.join(outDir, rel));
+
+    const second = exportWorkspaceChats({ ...base, skipUnchanged: true });
+    expect(second.exported).toHaveLength(0);
+    expect(second.excluded).toHaveLength(1);
+    expect(second.excluded[0]?.composerId).toBe(FIXTURE_COMPOSER_ID);
+
+    const excludeAbs = path.join(outDir, EXCLUDED_COMPOSERS_FILENAME);
+    expect(fs.existsSync(excludeAbs)).toBe(true);
+
+    writeExcludedComposerIds(outDir, new Set());
+
+    fs.unlinkSync(path.join(outDir, 'index.json'));
+
+    const third = exportWorkspaceChats({ ...base, skipUnchanged: true });
+    expect(third.exported).toHaveLength(1);
+    expect(third.excluded).toHaveLength(0);
+    expect(
+      fs.existsSync(path.join(outDir, third.exported[0]?.relativePath ?? '')),
+    ).toBe(true);
   });
 });

@@ -44,7 +44,10 @@ export function writeTextFileAtomic(targetPath: string, text: string): void {
   fs.renameSync(tmp, targetPath);
 }
 
-function readOptionalIndexJson(indexPath: string): ChatIndexFileV1 | undefined {
+/** Read `index.json` when present and valid (version 1). */
+export function readOptionalChatIndexFile(
+  indexPath: string,
+): ChatIndexFileV1 | undefined {
   let raw: string;
   try {
     raw = fs.readFileSync(indexPath, 'utf8');
@@ -77,7 +80,7 @@ export function mergeAndWriteChatIndex(
   indexPath: string,
   newEntries: Record<string, ChatIndexEntryV1>,
 ): void {
-  const existing = readOptionalIndexJson(indexPath);
+  const existing = readOptionalChatIndexFile(indexPath);
   const merged: ChatIndexFileV1 = {
     version: 1,
     chats: { ...(existing?.chats ?? {}), ...newEntries },

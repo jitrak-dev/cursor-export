@@ -23,6 +23,7 @@ function readCursorExportConfig(): {
   outputDirectory: string;
   debounceMs: number;
   workspaceStateDbPath: string | undefined;
+  skipUnchanged: boolean;
 } {
   const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
   const rawDb = cfg.get<string>('workspaceStateDbPath', '').trim();
@@ -33,6 +34,7 @@ function readCursorExportConfig(): {
     outputDirectory: cfg.get<string>('outputDirectory', '').trim(),
     debounceMs: clampDebounceMs(cfg.get<number>('debounceMs', 800)),
     workspaceStateDbPath,
+    skipUnchanged: cfg.get<boolean>('skipUnchanged', true),
   };
 }
 
@@ -128,13 +130,19 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
           : {}),
         sqliteBusyTimeoutMs: DEFAULT_STATE_VSCDB_BUSY_TIMEOUT_MS,
         onDiagnostic: appendDiagnostic,
+        skipUnchanged: cfg.skipUnchanged,
       });
       const agentInfo = result.agentTranscripts
         ? ` agents=${result.agentTranscripts.copied.length}`
         : '';
       output.appendLine(
-        `[${reason}] profile=${result.profileVersion} exported=${result.exported.length} skipped=${result.skipped.length}${agentInfo} → ${result.outputDirectory}`,
+        `[${reason}] profile=${result.profileVersion} exported=${result.exported.length} unchanged=${result.unchanged.length} excluded=${result.excluded.length} skipped=${result.skipped.length}${agentInfo} → ${result.outputDirectory}`,
       );
+      if (result.excluded.length > 0) {
+        for (const x of result.excluded) {
+          output.appendLine(`  excluded ${x.composerId}: ${x.reason}`);
+        }
+      }
       if (result.skipped.length > 0) {
         for (const s of result.skipped) {
           output.appendLine(`  skip ${s.composerId}: ${s.reason}`);
@@ -152,7 +160,7 @@ export function registerCursorExport(context: vscode.ExtensionContext): void {
           output.appendLine(`  skip agent ${s.relativePath}: ${s.reason}`);
         }
       }
-      statusItem.tooltip = `Cursor Export: last export (${reason}) at ${new Date().toLocaleTimeString()}\n${result.exported.length} file(s)`;
+      statusItem.tooltip = `Cursor Export: last export (${reason}) at ${new Date().toLocaleTimeString()}\n${result.exported.length} written, ${result.unchanged.length} unchanged`;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       output.appendLine(`[${reason}] export failed: ${msg}`);

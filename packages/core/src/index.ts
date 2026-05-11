@@ -7,10 +7,18 @@ export {
 export {
   type ChatExporterOptions,
   type ChatExportResult,
+  type ExcludedChatExport,
   type ExportedChatFile,
   exportWorkspaceChats,
   type SkippedChatExport,
 } from './chatExporter';
+export {
+  EXCLUDED_COMPOSERS_FILENAME,
+  excludedComposersFilePath,
+  type ExcludedComposersFileV1,
+  readExcludedComposerIds,
+  writeExcludedComposerIds,
+} from './chatExportExcluded';
 export {
   buildUniqueMarkdownStem,
   pickExportEpochMs,
@@ -21,6 +29,7 @@ export {
   type ChatIndexEntryV1,
   type ChatIndexFileV1,
   mergeAndWriteChatIndex,
+  readOptionalChatIndexFile,
   writeTextFileAtomic,
 } from './chatExportFs';
 export {

@@ -88,6 +88,9 @@ vi.mock('vscode', () => {
           if (key === 'workspaceStateDbPath') {
             return '';
           }
+          if (key === 'skipUnchanged') {
+            return true;
+          }
           return defaultValue;
         },
       }),

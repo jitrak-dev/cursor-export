@@ -15,11 +15,15 @@ Exports can contain **sensitive** data. The extension is **disabled by default**
 
 ## Settings
 
-| Id                             | Default   | Description                                       |
-| ------------------------------ | --------- | ------------------------------------------------- |
-| `cursorExport.enabled`         | `false`   | Watch global + workspace `state.vscdb` and export |
-| `cursorExport.outputDirectory` | _(empty)_ | Relative to workspace or absolute path            |
-| `cursorExport.debounceMs`      | `800`     | Debounce after file changes before export         |
+| Id                                  | Default   | Description                                                                      |
+| ----------------------------------- | --------- | -------------------------------------------------------------------------------- |
+| `cursorExport.enabled`              | `false`   | Watch global + workspace `state.vscdb` and export                                |
+| `cursorExport.outputDirectory`      | _(empty)_ | Relative to workspace or absolute path                                           |
+| `cursorExport.debounceMs`           | `800`     | Debounce after file changes before export                                        |
+| `cursorExport.workspaceStateDbPath` | _(empty)_ | Optional absolute path to this workspace's `state.vscdb`                         |
+| `cursorExport.skipUnchanged`        | `true`    | Skip rewriting `.md` when title/`updated` match `index.json` and the file exists |
+
+Monorepo [README](../README.md) documents `.cursor-export-excluded-composers.json` and recovery.
 
 ## Repository
 

@@ -131,6 +131,8 @@ If your default branch is not `main`, update `branches` in `.releaserc.cjs` and 
 - **Composer chat Markdown** files: required YAML front matter keys `title`, `model`, `updated` (ISO-8601), then the thread body.
 - **Agent transcript** files: copied from `~/.cursor/agent-transcripts/*.jsonl` to maintain conversation history.
 - **`index.json`**: maps stable composer id → relative path, title, updated.
+- **`skipUnchanged`** (`cursorExport.skipUnchanged`, default **on** in the extension): avoids rewriting a Markdown file when `index.json` already lists that composer with the same `title` and `updated` timestamp and the `.md` file still exists.
+- **Excluded composers**: `.cursor-export-excluded-composers.json` under the output directory lists composer ids skipped by export. If an exported `.md` file is missing while `index.json` still references it, the next export adds that composer id automatically. Remove ids from that JSON file to export again; if recovery still fails, delete the stale composer entry from `index.json` or remove `index.json` before exporting.
 
 Default output directory: `<workspace>/.cursor/chats/`. Override with setting `cursorExport.outputDirectory`.
 

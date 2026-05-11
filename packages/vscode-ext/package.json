@@ -74,6 +74,11 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Optional **absolute** path to this workspace's `state.vscdb` under `User/workspaceStorage/<id>/`. When set, skips auto-discovery from `workspace.json`. Use if export cannot resolve the DB (e.g. unusual remote layouts)."
+        },
+        "cursorExport.skipUnchanged": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "When enabled, does not rewrite a chat's Markdown if `index.json` already lists it with the same title and `updated` timestamp and the file still exists. Turn off to force a full rewrite every export."
         }
       }
     }
