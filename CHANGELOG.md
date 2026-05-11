@@ -1,3 +1,18 @@
+## [1.2.2](https://github.com/jitrak-dev/cursor-export/compare/v1.2.1...v1.2.2) (2026-05-11)
+
+
+* Merge branch 'main' of github.com:jitrak-dev/cursor-export ([](https://github.com/jitrak-dev/cursor-export/commit/3acd141217fca5a23e791fe6ee945c7f2fb8621b))
+
+
+### docs
+
+* update README with installation guide and agent transcript docs ([](https://github.com/jitrak-dev/cursor-export/commit/b3fee5cb8bc322b956d31549d1a7d15e0ec4002f))
+
+
+### fix
+
+* **core:** skip export when state.vscdb cannot be read ([](https://github.com/jitrak-dev/cursor-export/commit/460f5991fa50dde82ec74de1dd751bc1369bf6a2))
+
 ## [1.2.1](https://github.com/jitrak-dev/cursor-export/compare/v1.2.0...v1.2.1) (2026-05-09)
 
 
